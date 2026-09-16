@@ -32,7 +32,8 @@ class AlphabetItem {
 }
 
 class VailaHomeScreen extends StatefulWidget {
-  const VailaHomeScreen({super.key});
+  final String mode;
+  const VailaHomeScreen({super.key, this.mode = 'letters'});
 
   @override
   State<VailaHomeScreen> createState() => _VailaHomeScreenState();
@@ -92,8 +93,43 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
         tip: 'Say Letter E!'),
   ];
 
+  final List<AlphabetItem> _numbers = [
+    AlphabetItem(id: '1', letter: '1', sound: 'One', word: 'One', speechText: 'One', tip: 'Say One!'),
+    AlphabetItem(id: '2', letter: '2', sound: 'Two', word: 'Two', speechText: 'Two', tip: 'Say Two!'),
+    AlphabetItem(id: '3', letter: '3', sound: 'Three', word: 'Three', speechText: 'Three', tip: 'Say Three!'),
+    AlphabetItem(id: '4', letter: '4', sound: 'Four', word: 'Four', speechText: 'Four', tip: 'Say Four!'),
+    AlphabetItem(id: '5', letter: '5', sound: 'Five', word: 'Five', speechText: 'Five', tip: 'Say Five!'),
+    AlphabetItem(id: '6', letter: '6', sound: 'Six', word: 'Six', speechText: 'Six', tip: 'Say Six!'),
+    AlphabetItem(id: '7', letter: '7', sound: 'Seven', word: 'Seven', speechText: 'Seven', tip: 'Say Seven!'),
+    AlphabetItem(id: '8', letter: '8', sound: 'Eight', word: 'Eight', speechText: 'Eight', tip: 'Say Eight!'),
+    AlphabetItem(id: '9', letter: '9', sound: 'Nine', word: 'Nine', speechText: 'Nine', tip: 'Say Nine!'),
+    AlphabetItem(id: '10', letter: '10', sound: 'Ten', word: 'Ten', speechText: 'Ten', tip: 'Say Ten!'),
+    AlphabetItem(id: '11', letter: '11', sound: 'Eleven', word: 'Eleven', speechText: 'Eleven', tip: 'Say Eleven!'),
+    AlphabetItem(id: '12', letter: '12', sound: 'Twelve', word: 'Twelve', speechText: 'Twelve', tip: 'Say Twelve!'),
+    AlphabetItem(id: '13', letter: '13', sound: 'Thirteen', word: 'Thirteen', speechText: 'Thirteen', tip: 'Say Thirteen!'),
+    AlphabetItem(id: '14', letter: '14', sound: 'Fourteen', word: 'Fourteen', speechText: 'Fourteen', tip: 'Say Fourteen!'),
+    AlphabetItem(id: '15', letter: '15', sound: 'Fifteen', word: 'Fifteen', speechText: 'Fifteen', tip: 'Say Fifteen!'),
+    AlphabetItem(id: '16', letter: '16', sound: 'Sixteen', word: 'Sixteen', speechText: 'Sixteen', tip: 'Say Sixteen!'),
+    AlphabetItem(id: '17', letter: '17', sound: 'Seventeen', word: 'Seventeen', speechText: 'Seventeen', tip: 'Say Seventeen!'),
+    AlphabetItem(id: '18', letter: '18', sound: 'Eighteen', word: 'Eighteen', speechText: 'Eighteen', tip: 'Say Eighteen!'),
+    AlphabetItem(id: '19', letter: '19', sound: 'Nineteen', word: 'Nineteen', speechText: 'Nineteen', tip: 'Say Nineteen!'),
+    AlphabetItem(id: '20', letter: '20', sound: 'Twenty', word: 'Twenty', speechText: 'Twenty', tip: 'Say Twenty!'),
+    AlphabetItem(id: '30', letter: '30', sound: 'Thirty', word: 'Thirty', speechText: 'Thirty', tip: 'Say Thirty!'),
+    AlphabetItem(id: '40', letter: '40', sound: 'Forty', word: 'Forty', speechText: 'Forty', tip: 'Say Forty!'),
+    AlphabetItem(id: '50', letter: '50', sound: 'Fifty', word: 'Fifty', speechText: 'Fifty', tip: 'Say Fifty!'),
+    AlphabetItem(id: '60', letter: '60', sound: 'Sixty', word: 'Sixty', speechText: 'Sixty', tip: 'Say Sixty!'),
+    AlphabetItem(id: '70', letter: '70', sound: 'Seventy', word: 'Seventy', speechText: 'Seventy', tip: 'Say Seventy!'),
+    AlphabetItem(id: '80', letter: '80', sound: 'Eighty', word: 'Eighty', speechText: 'Eighty', tip: 'Say Eighty!'),
+    AlphabetItem(id: '90', letter: '90', sound: 'Ninety', word: 'Ninety', speechText: 'Ninety', tip: 'Say Ninety!'),
+    AlphabetItem(id: '100', letter: '100', sound: 'One Hundred', word: 'Hundred', speechText: 'One Hundred', tip: 'Say One Hundred!'),
+    AlphabetItem(id: '1000', letter: '1000', sound: 'One Thousand', word: 'Thousand', speechText: 'One Thousand', tip: 'Say One Thousand!'),
+  ];
+
+  bool get _isNumbersMode => widget.mode == 'numbers';
+  List<AlphabetItem> get _items => _isNumbersMode ? _numbers : _alphabets;
+
   int _currentIndex = 0;
-  AlphabetItem get _currentAlphabet => _alphabets[_currentIndex];
+  AlphabetItem get _currentAlphabet => _items[_currentIndex];
 
   final FlutterTts _flutterTts = FlutterTts();
   final AudioRecorder _audioRecorder = AudioRecorder();
@@ -448,7 +484,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
       _isReadyToSpeak = false;
       _voiceDetected = false;
       _isEvaluating = false;
-      _currentIndex = (_currentIndex + 1) % _alphabets.length;
+      _currentIndex = (_currentIndex + 1) % _items.length;
     });
   }
 
@@ -737,7 +773,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                               const Icon(Icons.headphones_rounded, color: Color(0xFF7C5CFC), size: 22),
                               const SizedBox(width: 6),
                               Text(
-                                "Speak Up",
+                                _isNumbersMode ? "Speak Up — Numbers" : "Speak Up",
                                 style: GoogleFonts.outfit(
                                   fontSize: 21,
                                   fontWeight: FontWeight.w900,
@@ -748,7 +784,9 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            "Speech Practice for Deaf Students",
+                            _isNumbersMode
+                                ? "Number Speaking Practice"
+                                : "Speech Practice for Deaf Students",
                             style: GoogleFonts.outfit(
                               fontSize: 12,
                               color: const Color(0xFF9CA3AF),
@@ -891,9 +929,11 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                           }
                         },
                         child: Text(
-                          _currentAlphabet.letter.toUpperCase(),
+                          _isNumbersMode
+                              ? _currentAlphabet.letter
+                              : _currentAlphabet.letter.toUpperCase(),
                           style: GoogleFonts.outfit(
-                            fontSize: 100,
+                            fontSize: _isNumbersMode ? 72 : 100,
                             fontWeight: FontWeight.w900,
                             color: const Color(0xFF1E293B),
                             height: 1.15,
@@ -962,10 +1002,67 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                         Row(
                           children: [
                             // Progress dots A–E with connecting lines
-                            ...List.generate(_alphabets.length, (index) {
+                            ...List.generate(_items.length, (index) {
                               final bool isCompleted = index < _currentIndex;
                               final bool isCurrent = index == _currentIndex;
                               final bool isActive = isCompleted || isCurrent;
+
+                              // For numbers mode with many items, show compact progress
+                              if (_isNumbersMode) {
+                                return Expanded(
+                                  child: Row(
+                                    children: [
+                                      if (index > 0)
+                                        Expanded(
+                                          child: Container(
+                                            height: 2.5,
+                                            decoration: BoxDecoration(
+                                              color: isCompleted
+                                                  ? const Color(0xFF7C5CFC)
+                                                  : const Color(0xFFE2E8F0),
+                                              borderRadius: BorderRadius.circular(2),
+                                            ),
+                                          ),
+                                        ),
+                                      if (isCurrent || index == 0 || index == _items.length - 1)
+                                        Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Container(
+                                              width: isCurrent ? 14 : 8,
+                                              height: isCurrent ? 14 : 8,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: isActive
+                                                    ? const Color(0xFF7C5CFC)
+                                                    : const Color(0xFFE2E8F0),
+                                                boxShadow: isCurrent
+                                                    ? [
+                                                        BoxShadow(
+                                                          color: const Color(0xFF7C5CFC).withOpacity(0.35),
+                                                          blurRadius: 8,
+                                                          spreadRadius: 1,
+                                                        )
+                                                      ]
+                                                    : [],
+                                              ),
+                                            ),
+                                            const SizedBox(height: 3),
+                                            if (isCurrent)
+                                              Text(
+                                                _items[index].letter,
+                                                style: GoogleFonts.outfit(
+                                                  fontSize: 8,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: const Color(0xFF7C5CFC),
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                    ],
+                                  ),
+                                );
+                              }
 
                               return Expanded(
                                 child: Row(
@@ -1008,7 +1105,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                                         ),
                                         const SizedBox(height: 5),
                                         Text(
-                                          _alphabets[index].letter.toUpperCase(),
+                                          _items[index].letter.toUpperCase(),
                                           style: GoogleFonts.outfit(
                                             fontSize: 10,
                                             fontWeight: FontWeight.w700,
@@ -1027,7 +1124,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                             // Trophy icon
                             Icon(
                               Icons.emoji_events_rounded,
-                              color: _currentIndex >= _alphabets.length
+                              color: _currentIndex >= _items.length
                                   ? Colors.amber
                                   : const Color(0xFFD1D5DB),
                               size: 24,
@@ -1211,7 +1308,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                   onPressed: _handleNextAlphabet,
                   icon: const Icon(Icons.arrow_forward_rounded, color: Colors.white),
                   label: Text(
-                    "NEXT LETTER ➔",
+                    _isNumbersMode ? "NEXT NUMBER ➔" : "NEXT LETTER ➔",
                     style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                 ),

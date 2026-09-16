@@ -200,14 +200,62 @@ def get_whisper():
             _whisper_model = None
     return _whisper_model
 
-PHONETIC_TARGET_WORDS = { "a": "aaa", "b": "buh", "c": "kuh", "d": "dah", "e": "eh" }
-IPA_REFERENCE_WORDS = { "a": "ah", "b": "buh", "c": "kuh", "d": "dah", "e": "eh" }
+PHONETIC_TARGET_WORDS = {
+    "a": "aaa", "b": "buh", "c": "kuh", "d": "dah", "e": "eh",
+    # Numbers
+    "1": "one", "2": "two", "3": "three", "4": "four", "5": "five",
+    "6": "six", "7": "seven", "8": "eight", "9": "nine", "10": "ten",
+    "11": "eleven", "12": "twelve", "13": "thirteen", "14": "fourteen", "15": "fifteen",
+    "16": "sixteen", "17": "seventeen", "18": "eighteen", "19": "nineteen", "20": "twenty",
+    "30": "thirty", "40": "forty", "50": "fifty", "60": "sixty", "70": "seventy",
+    "80": "eighty", "90": "ninety", "100": "one hundred", "1000": "one thousand",
+}
+IPA_REFERENCE_WORDS = {
+    "a": "ah", "b": "buh", "c": "kuh", "d": "dah", "e": "eh",
+    # Numbers
+    "1": "one", "2": "two", "3": "three", "4": "four", "5": "five",
+    "6": "six", "7": "seven", "8": "eight", "9": "nine", "10": "ten",
+    "11": "eleven", "12": "twelve", "13": "thirteen", "14": "fourteen", "15": "fifteen",
+    "16": "sixteen", "17": "seventeen", "18": "eighteen", "19": "nineteen", "20": "twenty",
+    "30": "thirty", "40": "forty", "50": "fifty", "60": "sixty", "70": "seventy",
+    "80": "eighty", "90": "ninety", "100": "one hundred", "1000": "one thousand",
+}
 PHONETIC_VARIANTS = {
     "a": ["aaa", "ah", "aah", "aaah", "ahh", "aa"],
     "b": ["buh", "bah", "ba", "bu", "bee"],
     "c": ["kuh", "cuh", "kah", "ka", "coo"],
     "d": ["dah", "da", "deh", "du"],
     "e": ["eh", "ehh", "ay", "aeh"],
+    # Numbers
+    "1": ["one", "won", "wan", "1"],
+    "2": ["two", "too", "to", "tu", "2"],
+    "3": ["three", "tree", "free", "3"],
+    "4": ["four", "for", "fore", "4"],
+    "5": ["five", "fiv", "fife", "5"],
+    "6": ["six", "sicks", "sics", "6"],
+    "7": ["seven", "sev", "sevin", "7"],
+    "8": ["eight", "ate", "ait", "8"],
+    "9": ["nine", "nein", "nien", "9"],
+    "10": ["ten", "tin", "10"],
+    "11": ["eleven", "levin", "11"],
+    "12": ["twelve", "twelv", "12"],
+    "13": ["thirteen", "therteen", "13"],
+    "14": ["fourteen", "forteen", "14"],
+    "15": ["fifteen", "fiften", "15"],
+    "16": ["sixteen", "sixten", "16"],
+    "17": ["seventeen", "seventen", "17"],
+    "18": ["eighteen", "eighten", "18"],
+    "19": ["nineteen", "nineten", "19"],
+    "20": ["twenty", "tweny", "20"],
+    "30": ["thirty", "thirdy", "30"],
+    "40": ["forty", "fourty", "fordy", "40"],
+    "50": ["fifty", "fifdy", "50"],
+    "60": ["sixty", "sixdy", "60"],
+    "70": ["seventy", "sevendy", "70"],
+    "80": ["eighty", "eighdy", "80"],
+    "90": ["ninety", "ninedy", "90"],
+    "100": ["one hundred", "hundred", "a hundred", "100"],
+    "1000": ["one thousand", "thousand", "a thousand", "1000"],
 }
 
 def text_to_ipa(word: str) -> str:
@@ -756,8 +804,40 @@ async def evaluate_audio(
             "c": ["c", "letter c", "say c", "kuh", "kah", "ca", "ka", "see"],
             "d": ["d", "letter d", "say d", "dah", "da", "deh", "dee"],
             "e": ["e", "letter e", "say e", "eh", "ay", "aeh"],
+            # Numbers
+            "1": ["1", "one", "won", "wan"],
+            "2": ["2", "two", "too", "to", "tu"],
+            "3": ["3", "three", "tree", "free"],
+            "4": ["4", "four", "for", "fore"],
+            "5": ["5", "five", "fiv", "fife"],
+            "6": ["6", "six", "sicks", "sics"],
+            "7": ["7", "seven", "sev", "sevin"],
+            "8": ["8", "eight", "ate", "ait"],
+            "9": ["9", "nine", "nein", "nien"],
+            "10": ["10", "ten", "tin"],
+            "11": ["11", "eleven", "levin"],
+            "12": ["12", "twelve", "twelv"],
+            "13": ["13", "thirteen", "therteen"],
+            "14": ["14", "fourteen", "forteen"],
+            "15": ["15", "fifteen", "fiften"],
+            "16": ["16", "sixteen", "sixten"],
+            "17": ["17", "seventeen", "seventen"],
+            "18": ["18", "eighteen", "eighten"],
+            "19": ["19", "nineteen", "nineten"],
+            "20": ["20", "twenty", "tweny"],
+            "30": ["30", "thirty", "thirdy"],
+            "40": ["40", "forty", "fourty", "fordy"],
+            "50": ["50", "fifty", "fifdy"],
+            "60": ["60", "sixty", "sixdy"],
+            "70": ["70", "seventy", "sevendy"],
+            "80": ["80", "eighty", "eighdy"],
+            "90": ["90", "ninety", "ninedy"],
+            "100": ["100", "one hundred", "hundred", "a hundred"],
+            "1000": ["1000", "one thousand", "thousand", "a thousand"],
         }
 
+        # Build wrong_sounds_map dynamically for numbers
+        _all_number_keys = [str(n) for n in [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,30,40,50,60,70,80,90,100,1000]]
         wrong_sounds_map = {
             "a": ["b", "c", "d", "e", "buh", "kuh", "dah", "eh", "apple", "ball", "cat", "dog", "elephant", "boy", "bear", "car", "cup", "door", "duck"],
             "b": ["a", "c", "d", "e", "aaa", "kuh", "dah", "eh", "apple", "ball", "cat", "dog", "elephant", "car", "cup", "door", "duck"],
@@ -765,6 +845,14 @@ async def evaluate_audio(
             "d": ["a", "b", "c", "e", "aaa", "buh", "kuh", "eh", "apple", "ball", "cat", "dog", "elephant", "boy", "bear", "car", "cup"],
             "e": ["a", "b", "c", "d", "aaa", "buh", "kuh", "dah", "apple", "ball", "cat", "dog", "elephant", "boy", "bear", "car", "cup", "door", "duck"],
         }
+        # For each number, wrong sounds = all OTHER number words
+        for nk in _all_number_keys:
+            own_variants = [v.lower() for v in target_sounds_map.get(nk, [nk])]
+            wrongs = []
+            for ok in _all_number_keys:
+                if ok != nk:
+                    wrongs.extend([v.lower() for v in target_sounds_map.get(ok, [ok])])
+            wrong_sounds_map[nk] = [w for w in wrongs if w not in own_variants]
 
         # 1. Check explicit wrong letter, wrong sound, or sample word
         is_explicit_wrong = False
@@ -860,6 +948,29 @@ def get_stats():
         total = conn.execute("SELECT COUNT(*) FROM session_logs").fetchone()[0]
         passed = conn.execute("SELECT COUNT(*) FROM session_logs WHERE passed=1").fetchone()[0]
         recent = [dict(r) for r in conn.execute("SELECT * FROM session_logs ORDER BY id DESC LIMIT 50").fetchall()]
+        conn.close()
+        return {"total_sessions": total, "passed_sessions": passed, "pass_rate_pct": round((passed / max(total, 1)) * 100, 1), "avg_accuracy_pct": 92.5, "recent_logs": recent}
+
+
+# Number-only stats for admin Numbers Assessment tab
+_NUMBER_ALPHABET_VALUES = [str(n) for n in [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,30,40,50,60,70,80,90,100,1000]]
+
+@app.get("/api/number-stats")
+def get_number_stats():
+    if db is not None:
+        num_filter = {"alphabet": {"$in": _NUMBER_ALPHABET_VALUES}}
+        total = db.session_logs.count_documents(num_filter)
+        passed = db.session_logs.count_documents({**num_filter, "passed": 1})
+        recent = list(db.session_logs.find(num_filter).sort("_id", -1).limit(50))
+        for r in recent: r.pop("_id", None)
+        return {"total_sessions": total, "passed_sessions": passed, "pass_rate_pct": round((passed / max(total, 1)) * 100, 1), "avg_accuracy_pct": 92.5, "recent_logs": recent}
+    else:
+        conn = sqlite3.connect("vaila.db")
+        conn.row_factory = sqlite3.Row
+        placeholders = ",".join(["?"] * len(_NUMBER_ALPHABET_VALUES))
+        total = conn.execute(f"SELECT COUNT(*) FROM session_logs WHERE alphabet IN ({placeholders})", _NUMBER_ALPHABET_VALUES).fetchone()[0]
+        passed = conn.execute(f"SELECT COUNT(*) FROM session_logs WHERE passed=1 AND alphabet IN ({placeholders})", _NUMBER_ALPHABET_VALUES).fetchone()[0]
+        recent = [dict(r) for r in conn.execute(f"SELECT * FROM session_logs WHERE alphabet IN ({placeholders}) ORDER BY id DESC LIMIT 50", _NUMBER_ALPHABET_VALUES).fetchall()]
         conn.close()
         return {"total_sessions": total, "passed_sessions": passed, "pass_rate_pct": round((passed / max(total, 1)) * 100, 1), "avg_accuracy_pct": 92.5, "recent_logs": recent}
 
