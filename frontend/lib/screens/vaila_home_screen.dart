@@ -41,8 +41,8 @@ class VailaHomeScreen extends StatefulWidget {
 
 class _VailaHomeScreenState extends State<VailaHomeScreen>
     with TickerProviderStateMixin {
-  static const String apiUrl = 'https://naila-teaching-alphabets.onrender.com';
-  static const String fallbackApiUrl = 'https://naila-teaching-alphabets.onrender.com';
+  static const String apiUrl = 'http://127.0.0.1:8000';
+  static const String fallbackApiUrl = 'http://localhost:8000';
 
   // ───── Instruction points for the popup ─────
   static const List<String> _instructionPoints = [
@@ -246,8 +246,22 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
 
   void _initTts() async {
     await _flutterTts.setLanguage('en-US');
-    await _flutterTts.setSpeechRate(0.4);
-    await _flutterTts.setPitch(1.0);
+    await _flutterTts.setSpeechRate(0.42);
+    await _flutterTts.setPitch(1.25);
+    if (kIsWeb) {
+      try {
+        var voices = await _flutterTts.getVoices;
+        if (voices != null && voices is List) {
+          for (var voice in voices) {
+            final name = (voice['name'] ?? '').toString().toLowerCase();
+            if (name.contains('female') || name.contains('zira') || name.contains('samantha') || name.contains('karen') || name.contains('google us english')) {
+              await _flutterTts.setVoice({"name": voice['name'], "locale": voice['locale'] ?? 'en-US'});
+              break;
+            }
+          }
+        }
+      } catch (_) {}
+    }
   }
 
   void _initAudioStream() {
@@ -303,7 +317,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
     for (int i = 0; i < 3; i++) {
       if (_cancelTtsLoop || !mounted) break;
       await _flutterTts.speak(soundToSpeak);
-      await Future.delayed(const Duration(milliseconds: 800));
+      await Future.delayed(const Duration(milliseconds: 1400));
     }
 
     if (!mounted) return;
@@ -421,27 +435,27 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
       passed = false;
       feedback = "Please speak clearly into the microphone and try again!";
       transcription = "(error)";
-    }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isEvaluating = false;
+          _evalResult = {
+            'accuracy': score,
+            'passed': passed,
+            'feedback': feedback,
+            'transcription': transcription,
+          };
+        });
 
-    if (!mounted) return;
-
-    setState(() {
-      _isEvaluating = false;
-      _evalResult = {
-        'accuracy': score,
-        'passed': passed,
-        'feedback': feedback,
-        'transcription': transcription,
-      };
-    });
-
-    if (!passed) {
-      _triggerShake();
+        if (!passed) {
+          _triggerShake();
+        }
+      }
     }
   }
 
   Future<Map<String, dynamic>?> _sendToBackend(String audioPath, String targetLetter, String spokenText) async {
-    final urls = ['https://naila-teaching-alphabets.onrender.com'];
+    final urls = [apiUrl, fallbackApiUrl];
 
     for (final baseUrl in urls) {
       try {
@@ -453,10 +467,23 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
 
         if (audioPath.isNotEmpty) {
           try {
-            request.files.add(
-              await http.MultipartFile.fromPath('file', audioPath),
-            );
-          } catch (_) {}
+            if (kIsWeb) {
+              final bytes = await http.readBytes(Uri.parse(audioPath));
+              request.files.add(
+                http.MultipartFile.fromBytes(
+                  'file',
+                  bytes,
+                  filename: 'audio.wav',
+                ),
+              );
+            } else {
+              request.files.add(
+                await http.MultipartFile.fromPath('file', audioPath),
+              );
+            }
+          } catch (e) {
+            print('Audio upload error: $e');
+          }
         }
 
         final streamedResponse = await request.send().timeout(const Duration(seconds: 12));

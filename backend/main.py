@@ -757,23 +757,31 @@ async def evaluate_audio(
         if not stt_transcription and audio_file_uploaded and _sr_available:
             try:
                 audio_bytes = await file.read()
-                if len(audio_bytes) > 1000:
-                    import subprocess
-                    with tempfile.NamedTemporaryFile(suffix=".m4a", delete=False) as tmp_m4a:
-                        tmp_m4a.write(audio_bytes)
-                        tmp_m4a_path = tmp_m4a.name
-
-                    # Convert m4a to wav using ffmpeg
-                    tmp_wav_path = tmp_m4a_path.replace(".m4a", ".wav")
+                if len(audio_bytes) > 300:
+                    tmp_wav_path = None
+                    tmp_orig_path = None
                     try:
-                        setup_ffmpeg()
-                        subprocess.run(
-                            ["ffmpeg", "-y", "-i", tmp_m4a_path, "-ar", "16000", "-ac", "1", tmp_wav_path],
-                            capture_output=True, timeout=10
-                        )
+                        recognizer = sr.Recognizer()
+                        if audio_bytes.startswith(b'RIFF'):
+                            # Direct WAV format (from Web recorder)
+                            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_wav:
+                                tmp_wav.write(audio_bytes)
+                                tmp_wav_path = tmp_wav.name
+                        else:
+                            # M4A / AAC format (from Mobile) -> convert using ffmpeg
+                            import subprocess
+                            with tempfile.NamedTemporaryFile(suffix=".m4a", delete=False) as tmp_m4a:
+                                tmp_m4a.write(audio_bytes)
+                                tmp_orig_path = tmp_m4a.name
 
-                        if os.path.exists(tmp_wav_path) and os.path.getsize(tmp_wav_path) > 500:
-                            recognizer = sr.Recognizer()
+                            tmp_wav_path = tmp_orig_path.replace(".m4a", ".wav")
+                            setup_ffmpeg()
+                            subprocess.run(
+                                ["ffmpeg", "-y", "-i", tmp_orig_path, "-ar", "16000", "-ac", "1", tmp_wav_path],
+                                capture_output=True, timeout=10
+                            )
+
+                        if tmp_wav_path and os.path.exists(tmp_wav_path) and os.path.getsize(tmp_wav_path) > 300:
                             with sr.AudioFile(tmp_wav_path) as source:
                                 audio_data = recognizer.record(source)
                             try:
@@ -788,10 +796,12 @@ async def evaluate_audio(
                     except Exception as conv_err:
                         print(f"[SERVER STT] Conversion error: {conv_err}")
                     finally:
-                        try: os.unlink(tmp_m4a_path)
-                        except: pass
-                        try: os.unlink(tmp_wav_path)
-                        except: pass
+                        if tmp_orig_path and os.path.exists(tmp_orig_path):
+                            try: os.unlink(tmp_orig_path)
+                            except: pass
+                        if tmp_wav_path and os.path.exists(tmp_wav_path):
+                            try: os.unlink(tmp_wav_path)
+                            except: pass
             except Exception as sr_err:
                 print(f"[SERVER STT] Error: {sr_err}")
 

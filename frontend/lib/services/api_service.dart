@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  // Configurable backend URL (production Render endpoint)
-  static const String baseUrl = 'https://naila-teaching-alphabets.onrender.com/api';
-  static const String fallbackUrl = 'https://naila-teaching-alphabets.onrender.com/api';
+  // Configurable backend URL (localhost for testing)
+  static const String baseUrl = 'http://127.0.0.1:8000/api';
+  static const String fallbackUrl = 'http://localhost:8000/api';
 
   /// Sends the recorded user audio file to Node.js backend for AI Voice Verification
   static Future<Map<String, dynamic>> verifyVoice({

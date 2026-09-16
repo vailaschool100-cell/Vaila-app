@@ -15,8 +15,8 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  static const String apiUrl = 'https://naila-teaching-alphabets.onrender.com';
-  static const String fallbackApiUrl = 'https://naila-teaching-alphabets.onrender.com';
+  static const String apiUrl = 'http://127.0.0.1:8000';
+  static const String fallbackApiUrl = 'http://localhost:8000';
 
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();

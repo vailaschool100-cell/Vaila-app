@@ -64,7 +64,7 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'users' | 'analytics' | 'numbers'>('users');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://naila-teaching-alphabets.onrender.com';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
   useEffect(() => {
     const token = localStorage.getItem('vaila_admin_token');

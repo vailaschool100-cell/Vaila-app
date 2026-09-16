@@ -23,8 +23,8 @@ class PaymentUploadScreen extends StatefulWidget {
 }
 
 class _PaymentUploadScreenState extends State<PaymentUploadScreen> {
-  static const String apiUrl = 'https://naila-teaching-alphabets.onrender.com';
-  static const String fallbackApiUrl = 'https://naila-teaching-alphabets.onrender.com';
+  static const String apiUrl = 'http://127.0.0.1:8000';
+  static const String fallbackApiUrl = 'http://localhost:8000';
 
   final ImagePicker _picker = ImagePicker();
   XFile? _selectedImage;
