@@ -7,6 +7,8 @@ import hashlib
 import json
 import smtplib
 import random
+import base64
+import urllib.request
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from typing import Optional, List
@@ -710,7 +712,83 @@ def get_alphabets():
         conn.row_factory = sqlite3.Row
         rows = conn.execute("SELECT * FROM alphabets").fetchall()
         conn.close()
-        return {"alphabets": [dict(r) for r in rows]}
+def evaluate_audio_with_gemini(audio_bytes: bytes, target_sound: str, mime_type: str = "audio/wav") -> Optional[dict]:
+    gemini_key = os.environ.get("GEMINI_API_KEY", "").strip()
+    if not gemini_key or len(audio_bytes) < 300:
+        return None
+
+    try:
+        encoded_audio = base64.b64encode(audio_bytes).decode("utf-8")
+        prompt = (
+            f"The user is a student learning speech pronunciation. "
+            f"Target sound/letter/number to pronounce is: '{target_sound}'. "
+            f"Listen to the attached student audio recording carefully. "
+            f"Determine what word, letter, or sound the student actually pronounced. "
+            f"Return ONLY a valid JSON object without markdown code blocks:\n"
+            f"{{\n"
+            f'  "transcription": "<exact sound or word spoken by student>",\n'
+            f'  "accuracy": <integer score from 0 to 100>,\n'
+            f'  "passed": <boolean true if sound matches target sound or variant, false otherwise>,\n'
+            f'  "feedback": "<short encouraging 1-line feedback for student>"\n'
+            f"}}"
+        )
+
+        payload = {
+            "contents": [
+                {
+                    "parts": [
+                        {
+                            "inline_data": {
+                                "mime_type": mime_type,
+                                "data": encoded_audio
+                            }
+                        },
+                        {
+                            "text": prompt
+                        }
+                    ]
+                }
+            ],
+            "generationConfig": {
+                "temperature": 0.1,
+                "responseMimeType": "application/json"
+            }
+        }
+
+        models_to_try = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"]
+        for model in models_to_try:
+            try:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={gemini_key}"
+                req_data = json.dumps(payload).encode("utf-8")
+                req = urllib.request.Request(
+                    url,
+                    data=req_data,
+                    headers={"Content-Type": "application/json"}
+                )
+                with urllib.request.urlopen(req, timeout=7) as resp:
+                    if resp.status == 200:
+                        res_body = resp.read().decode("utf-8")
+                        res_json = json.loads(res_body)
+                        candidates = res_json.get("candidates", [])
+                        if candidates:
+                            text_content = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+                            clean_text = text_content.strip()
+                            if clean_text.startswith("```json"):
+                                clean_text = clean_text[7:]
+                            if clean_text.endswith("```"):
+                                clean_text = clean_text[:-3]
+                            clean_text = clean_text.strip()
+                            
+                            eval_dict = json.loads(clean_text)
+                            print(f"[GEMINI EVALUATION] Success with model {model}: {eval_dict}")
+                            return eval_dict
+            except Exception as m_err:
+                print(f"[GEMINI EVALUATION] Model {model} notice: {m_err}")
+                continue
+    except Exception as e:
+        print(f"[GEMINI EVALUATION] General error: {e}")
+    
+    return None
 
 @app.post("/api/evaluate-audio", response_model=EvaluationResponse)
 async def evaluate_audio(
@@ -754,54 +832,62 @@ async def evaluate_audio(
         # transcribe the audio file on the server using SpeechRecognition library.
         # This gives us a REAL transcription of what the user actually said.
         # NO auto-pass: we listen to the actual audio and evaluate what was spoken.
-        if not stt_transcription and audio_file_uploaded and _sr_available:
+        if not stt_transcription and audio_file_uploaded:
             try:
                 audio_bytes = await file.read()
                 if len(audio_bytes) > 300:
-                    tmp_wav_path = None
-                    tmp_orig_path = None
-                    try:
-                        recognizer = sr.Recognizer()
-                        if audio_bytes.startswith(b'RIFF'):
-                            # Direct WAV format (from Web recorder)
-                            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_wav:
-                                tmp_wav.write(audio_bytes)
-                                tmp_wav_path = tmp_wav.name
-                        else:
-                            # M4A / AAC format (from Mobile) -> convert using ffmpeg
-                            import subprocess
-                            with tempfile.NamedTemporaryFile(suffix=".m4a", delete=False) as tmp_m4a:
-                                tmp_m4a.write(audio_bytes)
-                                tmp_orig_path = tmp_m4a.name
+                    # 1. Primary: SpeechRecognition library
+                    if _sr_available:
+                        tmp_wav_path = None
+                        tmp_orig_path = None
+                        try:
+                            recognizer = sr.Recognizer()
+                            if audio_bytes.startswith(b'RIFF'):
+                                with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_wav:
+                                    tmp_wav.write(audio_bytes)
+                                    tmp_wav_path = tmp_wav.name
+                            else:
+                                import subprocess
+                                with tempfile.NamedTemporaryFile(suffix=".m4a", delete=False) as tmp_m4a:
+                                    tmp_m4a.write(audio_bytes)
+                                    tmp_orig_path = tmp_m4a.name
 
-                            tmp_wav_path = tmp_orig_path.replace(".m4a", ".wav")
-                            setup_ffmpeg()
-                            subprocess.run(
-                                ["ffmpeg", "-y", "-i", tmp_orig_path, "-ar", "16000", "-ac", "1", tmp_wav_path],
-                                capture_output=True, timeout=10
-                            )
+                                tmp_wav_path = tmp_orig_path.replace(".m4a", ".wav")
+                                setup_ffmpeg()
+                                subprocess.run(
+                                    ["ffmpeg", "-y", "-i", tmp_orig_path, "-ar", "16000", "-ac", "1", tmp_wav_path],
+                                    capture_output=True, timeout=10
+                                )
 
-                        if tmp_wav_path and os.path.exists(tmp_wav_path) and os.path.getsize(tmp_wav_path) > 300:
-                            with sr.AudioFile(tmp_wav_path) as source:
-                                audio_data = recognizer.record(source)
-                            try:
-                                server_text = recognizer.recognize_google(audio_data, language="en-US")
-                                if server_text:
-                                    stt_transcription = server_text.strip().lower()
-                                    print(f"[SERVER STT] Transcribed from audio: '{stt_transcription}'")
-                            except sr.UnknownValueError:
-                                print("[SERVER STT] Could not understand audio — silence or unclear")
-                            except sr.RequestError as e:
-                                print(f"[SERVER STT] Google API error: {e}")
-                    except Exception as conv_err:
-                        print(f"[SERVER STT] Conversion error: {conv_err}")
-                    finally:
-                        if tmp_orig_path and os.path.exists(tmp_orig_path):
-                            try: os.unlink(tmp_orig_path)
-                            except: pass
-                        if tmp_wav_path and os.path.exists(tmp_wav_path):
-                            try: os.unlink(tmp_wav_path)
-                            except: pass
+                            if tmp_wav_path and os.path.exists(tmp_wav_path) and os.path.getsize(tmp_wav_path) > 300:
+                                with sr.AudioFile(tmp_wav_path) as source:
+                                    audio_data = recognizer.record(source)
+                                try:
+                                    server_text = recognizer.recognize_google(audio_data, language="en-US")
+                                    if server_text:
+                                        stt_transcription = server_text.strip().lower()
+                                        print(f"[SERVER STT] Transcribed from audio: '{stt_transcription}'")
+                                except sr.UnknownValueError:
+                                    print("[SERVER STT] Could not understand audio — silence or unclear")
+                                except sr.RequestError as e:
+                                    print(f"[SERVER STT] Google API error: {e}")
+                        except Exception as conv_err:
+                            print(f"[SERVER STT] Conversion error: {conv_err}")
+                        finally:
+                            if tmp_orig_path and os.path.exists(tmp_orig_path):
+                                try: os.unlink(tmp_orig_path)
+                                except: pass
+                            if tmp_wav_path and os.path.exists(tmp_wav_path):
+                                try: os.unlink(tmp_wav_path)
+                                except: pass
+
+                    # 2. Fallback: Gemini Multimodal Audio AI Evaluation
+                    if not stt_transcription:
+                        mime_type = "audio/wav" if audio_bytes.startswith(b'RIFF') else "audio/m4a"
+                        gemini_res = evaluate_audio_with_gemini(audio_bytes, target_sound, mime_type)
+                        if gemini_res:
+                            stt_transcription = gemini_res.get("transcription", "").strip().lower()
+                            print(f"[GEMINI STT] Transcribed: '{stt_transcription}', Passed: {gemini_res.get('passed')}")
             except Exception as sr_err:
                 print(f"[SERVER STT] Error: {sr_err}")
 
