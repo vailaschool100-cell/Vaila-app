@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:camera/camera.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:cross_file/cross_file.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -478,7 +479,8 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
         if (audioPath.isNotEmpty) {
           try {
             if (kIsWeb) {
-              final bytes = await http.readBytes(Uri.parse(audioPath));
+              final xFile = XFile(audioPath);
+              final bytes = await xFile.readAsBytes();
               request.files.add(
                 http.MultipartFile.fromBytes(
                   'file',
