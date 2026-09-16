@@ -968,7 +968,11 @@ async def evaluate_audio(
         # NO auto-pass: we listen to the actual audio and evaluate what was spoken.
         if not stt_transcription and audio_file_uploaded:
             try:
+                await file.seek(0)  # Ensure we read from the beginning
                 audio_bytes = await file.read()
+                print(f"[DEBUG] Audio file received: {len(audio_bytes)} bytes, filename={file.filename}")
+                gemini_key = os.environ.get("GEMINI_API_KEY", "").strip()
+                print(f"[DEBUG] Gemini API key present: {bool(gemini_key)}, starts with: {gemini_key[:8] if gemini_key else 'NONE'}...")
                 if len(audio_bytes) > 300:
                     # 1. Primary: SpeechRecognition library
                     if _sr_available:
@@ -1032,7 +1036,9 @@ async def evaluate_audio(
                         
                         target_options_str = ", ".join(global_valid_targets)
                         
+                        print(f"[DEBUG] Calling Gemini with {len(audio_bytes)} bytes, mime={mime_type}, targets={target_options_str[:100]}")
                         gemini_res = evaluate_audio_with_gemini(audio_bytes, target_options_str, mime_type)
+                        print(f"[DEBUG] Gemini result: {gemini_res}")
                         if gemini_res:
                             stt_transcription = gemini_res.get("transcription", "").strip().lower()
                             gemini_score = float(gemini_res.get("accuracy", 0))
