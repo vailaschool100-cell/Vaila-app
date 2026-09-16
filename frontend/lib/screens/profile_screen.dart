@@ -15,8 +15,8 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  static const String apiUrl = 'http://127.0.0.1:8000';
-  static const String fallbackApiUrl = 'http://localhost:8000';
+  static const String apiUrl = 'https://vaila-app.onrender.com';
+  static const String fallbackApiUrl = 'https://vaila-app.onrender.com';
 
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();

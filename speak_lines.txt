@@ -1,0 +1,31 @@
+50: 'When ready, tap "Speak" to start recording your voice',
+54: 'Speak loudly and clearly for the best results',
+286: bool _isSpeaking3x = false;
+289: bool _isReadyToSpeak = false;
+452: void _speakPhoneticSound3Times() async {
+453: if (_isSpeaking3x || _isListeningWindow || _isEvaluating) return;
+457: _isSpeaking3x = true;
+461: final soundToSpeak = _currentAlphabet.sound;
+465: await _flutterTts.speak(soundToSpeak);
+471: _isSpeaking3x = false;
+473: _isReadyToSpeak = true;
+490: _isReadyToSpeak = false;
+582: feedback = "Please speak clearly into the microphone and try again!";
+657: _isReadyToSpeak = false;
+1052: if (_isSpeaking3x)
+1112: if (!_isSpeaking3x && !_isListeningWindow && !_isEvaluating) {
+1113: _speakPhoneticSound3Times();
+1277: //  Bottom Section: Listen/Speak cards OR Listening/Evaluating/Results
+1416: onPressed: () => _speakPhoneticSound3Times(),
+1527: // ── Default / Ready state: Listen + Speak cards ──
+1534: if (!_isSpeaking3x && !_isListeningWindow && !_isEvaluating) {
+1535: _speakPhoneticSound3Times();
+1588: // Speak Card
+1592: if (_isReadyToSpeak) {
+1594: } else if (!_isSpeaking3x && !_isListeningWindow && !_isEvaluating) {
+1616: border: _isReadyToSpeak
+1621: color: _isReadyToSpeak
+1624: blurRadius: _isReadyToSpeak ? 18 : 14,
+1639: color: _isReadyToSpeak
+1647: "Speak",
+1651: color: _isReadyToSpeak

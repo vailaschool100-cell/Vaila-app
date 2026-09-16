@@ -203,7 +203,7 @@ def get_whisper():
     return _whisper_model
 
 PHONETIC_TARGET_WORDS = {
-    "a": "aaa", "b": "buh", "c": "kuh", "d": "dah", "e": "eh",
+    "a": "ah",     "b": "buh",     "c": "kuh",     "d": "dah",     "e": "eh",     "f": "fff",     "g": "guh",     "h": "huh",     "i": "ih",     "j": "juh",     "k": "kuh",     "l": "lll",     "m": "mmm",     "n": "nnn",     "o": "oh",     "p": "puh",     "q": "quh",     "r": "rrr",     "s": "sss",     "t": "tuh",     "u": "uh",     "v": "vvv",     "w": "wuh",     "x": "ks",     "y": "yuh",     "z": "zzz",
     # Numbers
     "1": "one", "2": "two", "3": "three", "4": "four", "5": "five",
     "6": "six", "7": "seven", "8": "eight", "9": "nine", "10": "ten",
@@ -213,7 +213,7 @@ PHONETIC_TARGET_WORDS = {
     "80": "eighty", "90": "ninety", "100": "one hundred", "1000": "one thousand",
 }
 IPA_REFERENCE_WORDS = {
-    "a": "ah", "b": "buh", "c": "kuh", "d": "dah", "e": "eh",
+    "a": "ah",     "b": "buh",     "c": "kuh",     "d": "dah",     "e": "eh",     "f": "fff",     "g": "guh",     "h": "huh",     "i": "ih",     "j": "juh",     "k": "kuh",     "l": "lll",     "m": "mmm",     "n": "nnn",     "o": "oh",     "p": "puh",     "q": "quh",     "r": "rrr",     "s": "sss",     "t": "tuh",     "u": "uh",     "v": "vvv",     "w": "wuh",     "x": "ks",     "y": "yuh",     "z": "zzz",
     # Numbers
     "1": "one", "2": "two", "3": "three", "4": "four", "5": "five",
     "6": "six", "7": "seven", "8": "eight", "9": "nine", "10": "ten",
@@ -223,11 +223,32 @@ IPA_REFERENCE_WORDS = {
     "80": "eighty", "90": "ninety", "100": "one hundred", "1000": "one thousand",
 }
 PHONETIC_VARIANTS = {
-    "a": ["aaa", "ah", "aah", "aaah", "ahh", "aa"],
-    "b": ["buh", "bah", "ba", "bu", "bee"],
-    "c": ["kuh", "cuh", "kah", "ka", "coo"],
-    "d": ["dah", "da", "deh", "du"],
-    "e": ["eh", "ehh", "ay", "aeh"],
+    "a": ["ah", "aaa", "a"],
+    "b": ["buh", "bah", "b"],
+    "c": ["kuh", "kah", "c"],
+    "d": ["dah", "da", "d"],
+    "e": ["eh", "aeh", "e"],
+    "f": ["fff", "fuh", "f"],
+    "g": ["guh", "gah", "g"],
+    "h": ["huh", "hah", "h"],
+    "i": ["ih", "ee", "i"],
+    "j": ["juh", "jah", "j"],
+    "k": ["kuh", "kah", "k"],
+    "l": ["lll", "luh", "l"],
+    "m": ["mmm", "muh", "m"],
+    "n": ["nnn", "nuh", "n"],
+    "o": ["oh", "aw", "o"],
+    "p": ["puh", "pah", "p"],
+    "q": ["quh", "qwa", "q"],
+    "r": ["rrr", "ruh", "r"],
+    "s": ["sss", "suh", "s"],
+    "t": ["tuh", "tah", "t"],
+    "u": ["uh", "oo", "u"],
+    "v": ["vvv", "vuh", "v"],
+    "w": ["wuh", "wah", "w"],
+    "x": ["ks", "eks", "x"],
+    "y": ["yuh", "yah", "y"],
+    "z": ["zzz", "zuh", "z"],
     # Numbers
     "1": ["one", "won", "wan", "1"],
     "2": ["two", "too", "to", "tu", "2"],
@@ -712,7 +733,7 @@ def get_alphabets():
         conn.row_factory = sqlite3.Row
         rows = conn.execute("SELECT * FROM alphabets").fetchall()
         conn.close()
-def evaluate_audio_with_gemini(audio_bytes: bytes, target_sound: str, mime_type: str = "audio/wav") -> Optional[dict]:
+def evaluate_audio_with_gemini(audio_bytes: bytes, target_options: str, mime_type: str = "audio/wav") -> Optional[dict]:
     gemini_key = os.environ.get("GEMINI_API_KEY", "").strip()
     if not gemini_key or len(audio_bytes) < 300:
         return None
@@ -720,15 +741,16 @@ def evaluate_audio_with_gemini(audio_bytes: bytes, target_sound: str, mime_type:
     try:
         encoded_audio = base64.b64encode(audio_bytes).decode("utf-8")
         prompt = (
-            f"You are a warm, encouraging speech teacher evaluating a young student learning speech pronunciation.\n"
-            f"Target item to pronounce: '{target_sound}'.\n"
+            f"You are a warm, encouraging speech evaluator for deaf children learning to speak.\n"
+            f"The student is trying to pronounce ANY of the following acceptable variants: '{target_options}'.\n"
             f"Listen to the attached student audio recording carefully.\n\n"
-            f"EVALUATION INSTRUCTIONS & 50% LENIENCY RULE:\n"
-            f"1. Determine what sound, letter, or word the student actually attempted to pronounce.\n"
-            f"2. Calculate a phonetic match accuracy score from 0 to 100%.\n"
-            f"3. PASSING THRESHOLD IS 50%: If the student's attempt is 50% or closer to '{target_sound}' (including child/imperfect pronunciation, phonetic approximations, or correct sound), set 'passed': true and 'accuracy': <50 to 100>.\n"
-            f"4. FAIL RULE: If the student pronounced a completely different letter, different number, or completely unrelated word (under 50% match) or no speech, set 'passed': false and 'accuracy': <0 to 49>.\n"
-            f"5. Provide a short, encouraging 1-line feedback for the student mentioning their match score.\n\n"
+            f"EVALUATION INSTRUCTIONS FOR DEAF CHILDREN & 50% LENIENCY RULE:\n"
+            f"1. Deaf children might not articulate perfectly. You must be lenient and listen for approximations.\n"
+            f"2. Calculate a phonetic match accuracy score from 0 to 100% based on how close their attempt is to ANY of the acceptable variants.\n"
+            f"3. If they pronounce it perfectly or almost perfectly, assign a score of 95%.\n"
+            f"4. PASSING THRESHOLD IS 50%: If the child's attempt is 50% or closer to ANY of these variants ('{target_options}'), set 'passed': true and 'accuracy': <50 to 95>.\n"
+            f"5. FAIL RULE: If the child pronounced a completely different letter/number, or no speech at all, set 'passed': false and 'accuracy': <0 to 49> based on effort.\n"
+            f"6. Provide a short, encouraging 1-line feedback for the child mentioning their match score.\n\n"
             f"Return ONLY valid JSON matching this schema without markdown code block backticks:\n"
             f"{{\n"
             f'  "transcription": "<word or sound heard>",\n'
@@ -770,7 +792,7 @@ def evaluate_audio_with_gemini(audio_bytes: bytes, target_sound: str, mime_type:
                     data=req_data,
                     headers={"Content-Type": "application/json"}
                 )
-                with urllib.request.urlopen(req, timeout=7) as resp:
+                with urllib.request.urlopen(req, timeout=30) as resp:
                     if resp.status == 200:
                         res_body = resp.read().decode("utf-8")
                         res_json = json.loads(res_body)
@@ -832,6 +854,113 @@ async def evaluate_audio(
         stt_transcription = spoken_text.strip().lower()
         audio_file_uploaded = file is not None
 
+        # Sample words map for each letter
+        SAMPLE_WORDS = {
+            "a": "apple", "b": "ball", "c": "cat", "d": "dog", "e": "elephant",
+            "f": "fish", "g": "goat", "h": "hat", "i": "igloo", "j": "jug",
+            "k": "kite", "l": "lion", "m": "monkey", "n": "nest", "o": "orange",
+            "p": "parrot", "q": "queen", "r": "rabbit", "s": "snake", "t": "tiger",
+            "u": "umbrella", "v": "van", "w": "whale", "x": "xylophone", "y": "yak", "z": "zebra",
+        }
+
+        target_sounds_map = {
+            "a": ["a", "letter a", "say a", "aaa", "ah", "aah", "aa", "apple"],
+            "b": ["b", "letter b", "say b", "buh", "bah", "bee", "be", "ball"],
+            "c": ["c", "letter c", "say c", "kuh", "kah", "ca", "ka", "see", "cat"],
+            "d": ["d", "letter d", "say d", "dah", "da", "deh", "dee", "dog", "duh"],
+            "e": ["e", "letter e", "say e", "eh", "ay", "aeh", "elephant"],
+            "f": ["f", "letter f", "say f", "fff", "fuh", "eff", "fish"],
+            "g": ["g", "letter g", "say g", "guh", "gah", "gee", "goat"],
+            "h": ["h", "letter h", "say h", "huh", "hah", "aitch", "hat"],
+            "i": ["i", "letter i", "say i", "ih", "ee", "eye", "igloo"],
+            "j": ["j", "letter j", "say j", "juh", "jah", "jay", "jug"],
+            "k": ["k", "letter k", "say k", "kuh", "kah", "kay", "kite"],
+            "l": ["l", "letter l", "say l", "lll", "luh", "ell", "lion"],
+            "m": ["m", "letter m", "say m", "mmm", "muh", "em", "monkey"],
+            "n": ["n", "letter n", "say n", "nnn", "nuh", "en", "nest"],
+            "o": ["o", "letter o", "say o", "oh", "aw", "orange"],
+            "p": ["p", "letter p", "say p", "puh", "pah", "pee", "parrot"],
+            "q": ["q", "letter q", "say q", "quh", "qwa", "cue", "queen"],
+            "r": ["r", "letter r", "say r", "rrr", "ruh", "are", "rabbit"],
+            "s": ["s", "letter s", "say s", "sss", "suh", "ess", "snake"],
+            "t": ["t", "letter t", "say t", "tuh", "tah", "tee", "tiger"],
+            "u": ["u", "letter u", "say u", "uh", "you", "umbrella"],
+            "v": ["v", "letter v", "say v", "vvv", "vuh", "vee", "van"],
+            "w": ["w", "letter w", "say w", "wuh", "double you", "whale"],
+            "x": ["x", "letter x", "say x", "ks", "eks", "ex", "xylophone"],
+            "y": ["y", "letter y", "say y", "yuh", "why", "yak"],
+            "z": ["z", "letter z", "say z", "zzz", "zuh", "zee", "zed", "zebra"],
+            "1": ["1", "one", "won", "wan"], "2": ["2", "two", "too", "to", "tu"],
+            "3": ["3", "three", "tree", "free"], "4": ["4", "four", "for", "fore"],
+            "5": ["5", "five", "fiv", "fife"], "6": ["6", "six", "sicks", "sics"],
+            "7": ["7", "seven", "sev", "sevin"], "8": ["8", "eight", "ate", "ait"],
+            "9": ["9", "nine", "nein", "nien"], "10": ["10", "ten", "tin"],
+            "11": ["11", "eleven", "levin"], "12": ["12", "twelve", "twelv"],
+            "13": ["13", "thirteen", "therteen"], "14": ["14", "fourteen", "forteen"],
+            "15": ["15", "fifteen", "fiften"], "16": ["16", "sixteen", "sixten"],
+            "17": ["17", "seventeen", "seventen"], "18": ["18", "eighteen", "eighten"],
+            "19": ["19", "nineteen", "nineten"], "20": ["20", "twenty", "tweny"],
+            "30": ["30", "thirty", "thirdy"], "40": ["40", "forty", "fourty", "fordy"],
+            "50": ["50", "fifty", "fifdy"], "60": ["60", "sixty", "sixdy"],
+            "70": ["70", "seventy", "sevendy"], "80": ["80", "eighty", "eighdy"],
+            "90": ["90", "ninety", "ninedy"], "100": ["100", "one hundred", "hundred", "a hundred"],
+            "1000": ["1000", "one thousand", "thousand", "a thousand"],
+        }
+        _all_number_keys = [str(n) for n in [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,30,40,50,60,70,80,90,100,1000]]
+        wrong_sounds_map = {
+            "a": ["b", "buh", "c", "kuh", "d", "dah", "e", "eh", "f", "fff", "g", "guh", "h", "huh", "i", "ih", "j", "juh", "k", "kuh", "l", "lll", "m", "mmm", "n", "nnn", "o", "oh", "p", "puh", "q", "quh", "r", "rrr", "s", "sss", "t", "tuh", "u", "uh", "v", "vvv", "w", "wuh", "x", "ks", "y", "yuh", "z", "zzz"],
+            "b": ["a", "ah", "c", "kuh", "d", "dah", "e", "eh", "f", "fff", "g", "guh", "h", "huh", "i", "ih", "j", "juh", "k", "kuh", "l", "lll", "m", "mmm", "n", "nnn", "o", "oh", "p", "puh", "q", "quh", "r", "rrr", "s", "sss", "t", "tuh", "u", "uh", "v", "vvv", "w", "wuh", "x", "ks", "y", "yuh", "z", "zzz"],
+            "c": ["a", "ah", "b", "buh", "d", "dah", "e", "eh", "f", "fff", "g", "guh", "h", "huh", "i", "ih", "j", "juh", "k", "kuh", "l", "lll", "m", "mmm", "n", "nnn", "o", "oh", "p", "puh", "q", "quh", "r", "rrr", "s", "sss", "t", "tuh", "u", "uh", "v", "vvv", "w", "wuh", "x", "ks", "y", "yuh", "z", "zzz"],
+            "d": ["a", "ah", "b", "buh", "c", "kuh", "e", "eh", "f", "fff", "g", "guh", "h", "huh", "i", "ih", "j", "juh", "k", "kuh", "l", "lll", "m", "mmm", "n", "nnn", "o", "oh", "p", "puh", "q", "quh", "r", "rrr", "s", "sss", "t", "tuh", "u", "uh", "v", "vvv", "w", "wuh", "x", "ks", "y", "yuh", "z", "zzz"],
+            "e": ["a", "ah", "b", "buh", "c", "kuh", "d", "dah", "f", "fff", "g", "guh", "h", "huh", "i", "ih", "j", "juh", "k", "kuh", "l", "lll", "m", "mmm", "n", "nnn", "o", "oh", "p", "puh", "q", "quh", "r", "rrr", "s", "sss", "t", "tuh", "u", "uh", "v", "vvv", "w", "wuh", "x", "ks", "y", "yuh", "z", "zzz"],
+            "f": ["a", "ah", "b", "buh", "c", "kuh", "d", "dah", "e", "eh", "g", "guh", "h", "huh", "i", "ih", "j", "juh", "k", "kuh", "l", "lll", "m", "mmm", "n", "nnn", "o", "oh", "p", "puh", "q", "quh", "r", "rrr", "s", "sss", "t", "tuh", "u", "uh", "v", "vvv", "w", "wuh", "x", "ks", "y", "yuh", "z", "zzz"],
+            "g": ["a", "ah", "b", "buh", "c", "kuh", "d", "dah", "e", "eh", "f", "fff", "h", "huh", "i", "ih", "j", "juh", "k", "kuh", "l", "lll", "m", "mmm", "n", "nnn", "o", "oh", "p", "puh", "q", "quh", "r", "rrr", "s", "sss", "t", "tuh", "u", "uh", "v", "vvv", "w", "wuh", "x", "ks", "y", "yuh", "z", "zzz"],
+            "h": ["a", "ah", "b", "buh", "c", "kuh", "d", "dah", "e", "eh", "f", "fff", "g", "guh", "i", "ih", "j", "juh", "k", "kuh", "l", "lll", "m", "mmm", "n", "nnn", "o", "oh", "p", "puh", "q", "quh", "r", "rrr", "s", "sss", "t", "tuh", "u", "uh", "v", "vvv", "w", "wuh", "x", "ks", "y", "yuh", "z", "zzz"],
+            "i": ["a", "ah", "b", "buh", "c", "kuh", "d", "dah", "e", "eh", "f", "fff", "g", "guh", "h", "huh", "j", "juh", "k", "kuh", "l", "lll", "m", "mmm", "n", "nnn", "o", "oh", "p", "puh", "q", "quh", "r", "rrr", "s", "sss", "t", "tuh", "u", "uh", "v", "vvv", "w", "wuh", "x", "ks", "y", "yuh", "z", "zzz"],
+            "j": ["a", "ah", "b", "buh", "c", "kuh", "d", "dah", "e", "eh", "f", "fff", "g", "guh", "h", "huh", "i", "ih", "k", "kuh", "l", "lll", "m", "mmm", "n", "nnn", "o", "oh", "p", "puh", "q", "quh", "r", "rrr", "s", "sss", "t", "tuh", "u", "uh", "v", "vvv", "w", "wuh", "x", "ks", "y", "yuh", "z", "zzz"],
+            "k": ["a", "ah", "b", "buh", "c", "kuh", "d", "dah", "e", "eh", "f", "fff", "g", "guh", "h", "huh", "i", "ih", "j", "juh", "l", "lll", "m", "mmm", "n", "nnn", "o", "oh", "p", "puh", "q", "quh", "r", "rrr", "s", "sss", "t", "tuh", "u", "uh", "v", "vvv", "w", "wuh", "x", "ks", "y", "yuh", "z", "zzz"],
+            "l": ["a", "ah", "b", "buh", "c", "kuh", "d", "dah", "e", "eh", "f", "fff", "g", "guh", "h", "huh", "i", "ih", "j", "juh", "k", "kuh", "m", "mmm", "n", "nnn", "o", "oh", "p", "puh", "q", "quh", "r", "rrr", "s", "sss", "t", "tuh", "u", "uh", "v", "vvv", "w", "wuh", "x", "ks", "y", "yuh", "z", "zzz"],
+            "m": ["a", "ah", "b", "buh", "c", "kuh", "d", "dah", "e", "eh", "f", "fff", "g", "guh", "h", "huh", "i", "ih", "j", "juh", "k", "kuh", "l", "lll", "n", "nnn", "o", "oh", "p", "puh", "q", "quh", "r", "rrr", "s", "sss", "t", "tuh", "u", "uh", "v", "vvv", "w", "wuh", "x", "ks", "y", "yuh", "z", "zzz"],
+            "n": ["a", "ah", "b", "buh", "c", "kuh", "d", "dah", "e", "eh", "f", "fff", "g", "guh", "h", "huh", "i", "ih", "j", "juh", "k", "kuh", "l", "lll", "m", "mmm", "o", "oh", "p", "puh", "q", "quh", "r", "rrr", "s", "sss", "t", "tuh", "u", "uh", "v", "vvv", "w", "wuh", "x", "ks", "y", "yuh", "z", "zzz"],
+            "o": ["a", "ah", "b", "buh", "c", "kuh", "d", "dah", "e", "eh", "f", "fff", "g", "guh", "h", "huh", "i", "ih", "j", "juh", "k", "kuh", "l", "lll", "m", "mmm", "n", "nnn", "p", "puh", "q", "quh", "r", "rrr", "s", "sss", "t", "tuh", "u", "uh", "v", "vvv", "w", "wuh", "x", "ks", "y", "yuh", "z", "zzz"],
+            "p": ["a", "ah", "b", "buh", "c", "kuh", "d", "dah", "e", "eh", "f", "fff", "g", "guh", "h", "huh", "i", "ih", "j", "juh", "k", "kuh", "l", "lll", "m", "mmm", "n", "nnn", "o", "oh", "q", "quh", "r", "rrr", "s", "sss", "t", "tuh", "u", "uh", "v", "vvv", "w", "wuh", "x", "ks", "y", "yuh", "z", "zzz"],
+            "q": ["a", "ah", "b", "buh", "c", "kuh", "d", "dah", "e", "eh", "f", "fff", "g", "guh", "h", "huh", "i", "ih", "j", "juh", "k", "kuh", "l", "lll", "m", "mmm", "n", "nnn", "o", "oh", "p", "puh", "r", "rrr", "s", "sss", "t", "tuh", "u", "uh", "v", "vvv", "w", "wuh", "x", "ks", "y", "yuh", "z", "zzz"],
+            "r": ["a", "ah", "b", "buh", "c", "kuh", "d", "dah", "e", "eh", "f", "fff", "g", "guh", "h", "huh", "i", "ih", "j", "juh", "k", "kuh", "l", "lll", "m", "mmm", "n", "nnn", "o", "oh", "p", "puh", "q", "quh", "s", "sss", "t", "tuh", "u", "uh", "v", "vvv", "w", "wuh", "x", "ks", "y", "yuh", "z", "zzz"],
+            "s": ["a", "ah", "b", "buh", "c", "kuh", "d", "dah", "e", "eh", "f", "fff", "g", "guh", "h", "huh", "i", "ih", "j", "juh", "k", "kuh", "l", "lll", "m", "mmm", "n", "nnn", "o", "oh", "p", "puh", "q", "quh", "r", "rrr", "t", "tuh", "u", "uh", "v", "vvv", "w", "wuh", "x", "ks", "y", "yuh", "z", "zzz"],
+            "t": ["a", "ah", "b", "buh", "c", "kuh", "d", "dah", "e", "eh", "f", "fff", "g", "guh", "h", "huh", "i", "ih", "j", "juh", "k", "kuh", "l", "lll", "m", "mmm", "n", "nnn", "o", "oh", "p", "puh", "q", "quh", "r", "rrr", "s", "sss", "u", "uh", "v", "vvv", "w", "wuh", "x", "ks", "y", "yuh", "z", "zzz"],
+            "u": ["a", "ah", "b", "buh", "c", "kuh", "d", "dah", "e", "eh", "f", "fff", "g", "guh", "h", "huh", "i", "ih", "j", "juh", "k", "kuh", "l", "lll", "m", "mmm", "n", "nnn", "o", "oh", "p", "puh", "q", "quh", "r", "rrr", "s", "sss", "t", "tuh", "v", "vvv", "w", "wuh", "x", "ks", "y", "yuh", "z", "zzz"],
+            "v": ["a", "ah", "b", "buh", "c", "kuh", "d", "dah", "e", "eh", "f", "fff", "g", "guh", "h", "huh", "i", "ih", "j", "juh", "k", "kuh", "l", "lll", "m", "mmm", "n", "nnn", "o", "oh", "p", "puh", "q", "quh", "r", "rrr", "s", "sss", "t", "tuh", "u", "uh", "w", "wuh", "x", "ks", "y", "yuh", "z", "zzz"],
+            "w": ["a", "ah", "b", "buh", "c", "kuh", "d", "dah", "e", "eh", "f", "fff", "g", "guh", "h", "huh", "i", "ih", "j", "juh", "k", "kuh", "l", "lll", "m", "mmm", "n", "nnn", "o", "oh", "p", "puh", "q", "quh", "r", "rrr", "s", "sss", "t", "tuh", "u", "uh", "v", "vvv", "x", "ks", "y", "yuh", "z", "zzz"],
+            "x": ["a", "ah", "b", "buh", "c", "kuh", "d", "dah", "e", "eh", "f", "fff", "g", "guh", "h", "huh", "i", "ih", "j", "juh", "k", "kuh", "l", "lll", "m", "mmm", "n", "nnn", "o", "oh", "p", "puh", "q", "quh", "r", "rrr", "s", "sss", "t", "tuh", "u", "uh", "v", "vvv", "w", "wuh", "y", "yuh", "z", "zzz"],
+            "y": ["a", "ah", "b", "buh", "c", "kuh", "d", "dah", "e", "eh", "f", "fff", "g", "guh", "h", "huh", "i", "ih", "j", "juh", "k", "kuh", "l", "lll", "m", "mmm", "n", "nnn", "o", "oh", "p", "puh", "q", "quh", "r", "rrr", "s", "sss", "t", "tuh", "u", "uh", "v", "vvv", "w", "wuh", "x", "ks", "z", "zzz"],
+            "z": ["a", "ah", "b", "buh", "c", "kuh", "d", "dah", "e", "eh", "f", "fff", "g", "guh", "h", "huh", "i", "ih", "j", "juh", "k", "kuh", "l", "lll", "m", "mmm", "n", "nnn", "o", "oh", "p", "puh", "q", "quh", "r", "rrr", "s", "sss", "t", "tuh", "u", "uh", "v", "vvv", "w", "wuh", "x", "ks", "y", "yuh"],
+        }
+        for nk in _all_number_keys:
+            own_variants = [v.lower() for v in target_sounds_map.get(nk, [nk])]
+            wrongs = []
+            for ok in _all_number_keys:
+                if ok != nk:
+                    wrongs.extend([v.lower() for v in target_sounds_map.get(ok, [ok])])
+            wrong_sounds_map[nk] = [w for w in wrongs if w not in own_variants]
+
+        global_valid_targets = target_sounds_map.get(target, [target_sound, target]).copy()
+        global_valid_targets.extend(list(target_variants))
+        global_valid_targets = list(set([v.lower() for v in global_valid_targets if v]))
+
+        # First, check if phone's STT is already a perfect match
+        is_target_match = False
+        if stt_transcription:
+            cleaned_stt = stt_transcription.strip(".,!? ").lower()
+            stt_words = set(cleaned_stt.split())
+            for t in global_valid_targets:
+                if t == cleaned_stt or t in stt_words or (len(t) > 1 and t in cleaned_stt):
+                    is_target_match = True
+                    break
+        
+        # If not a perfect match, and we have an audio file, force audio re-evaluation
+        if not is_target_match and audio_file_uploaded:
+            stt_transcription = ""
+
         # SERVER-SIDE AUDIO TRANSCRIPTION FALLBACK:
         # If phone's Google STT sent empty text BUT user uploaded an audio file,
         # transcribe the audio file on the server using SpeechRecognition library.
@@ -887,9 +1016,23 @@ async def evaluate_audio(
                                 except: pass
 
                     # 2. Fallback: Gemini Multimodal Audio AI Evaluation with 50% Leniency
-                    if not stt_transcription:
+                    # Check again if local STT found a perfect match
+                    if stt_transcription:
+                        cleaned_stt = stt_transcription.strip(".,!? ").lower()
+                        stt_words = set(cleaned_stt.split())
+                        valid_targets = target_sounds_map.get(target, [target_sound, target])
+                        for t in valid_targets:
+                            if t == cleaned_stt or t in stt_words or (len(t) > 1 and t in cleaned_stt):
+                                is_target_match = True
+                                break
+                    
+                    # For deaf children, if it's NOT a perfect match, always use Gemini for lenient % scoring
+                    if not is_target_match:
                         mime_type = "audio/wav" if audio_bytes.startswith(b'RIFF') else "audio/m4a"
-                        gemini_res = evaluate_audio_with_gemini(audio_bytes, target_sound, mime_type)
+                        
+                        target_options_str = ", ".join(global_valid_targets)
+                        
+                        gemini_res = evaluate_audio_with_gemini(audio_bytes, target_options_str, mime_type)
                         if gemini_res:
                             stt_transcription = gemini_res.get("transcription", "").strip().lower()
                             gemini_score = float(gemini_res.get("accuracy", 0))
@@ -920,62 +1063,6 @@ async def evaluate_audio(
         cleaned_stt = stt_transcription.strip(".,!? ").lower()
         stt_words = set(cleaned_stt.split())
 
-        target_sounds_map = {
-            "a": ["a", "letter a", "say a", "aaa", "ah", "aah", "aa"],
-            "b": ["b", "letter b", "say b", "buh", "bah", "bee", "be"],
-            "c": ["c", "letter c", "say c", "kuh", "kah", "ca", "ka", "see"],
-            "d": ["d", "letter d", "say d", "dah", "da", "deh", "dee"],
-            "e": ["e", "letter e", "say e", "eh", "ay", "aeh"],
-            # Numbers
-            "1": ["1", "one", "won", "wan"],
-            "2": ["2", "two", "too", "to", "tu"],
-            "3": ["3", "three", "tree", "free"],
-            "4": ["4", "four", "for", "fore"],
-            "5": ["5", "five", "fiv", "fife"],
-            "6": ["6", "six", "sicks", "sics"],
-            "7": ["7", "seven", "sev", "sevin"],
-            "8": ["8", "eight", "ate", "ait"],
-            "9": ["9", "nine", "nein", "nien"],
-            "10": ["10", "ten", "tin"],
-            "11": ["11", "eleven", "levin"],
-            "12": ["12", "twelve", "twelv"],
-            "13": ["13", "thirteen", "therteen"],
-            "14": ["14", "fourteen", "forteen"],
-            "15": ["15", "fifteen", "fiften"],
-            "16": ["16", "sixteen", "sixten"],
-            "17": ["17", "seventeen", "seventen"],
-            "18": ["18", "eighteen", "eighten"],
-            "19": ["19", "nineteen", "nineten"],
-            "20": ["20", "twenty", "tweny"],
-            "30": ["30", "thirty", "thirdy"],
-            "40": ["40", "forty", "fourty", "fordy"],
-            "50": ["50", "fifty", "fifdy"],
-            "60": ["60", "sixty", "sixdy"],
-            "70": ["70", "seventy", "sevendy"],
-            "80": ["80", "eighty", "eighdy"],
-            "90": ["90", "ninety", "ninedy"],
-            "100": ["100", "one hundred", "hundred", "a hundred"],
-            "1000": ["1000", "one thousand", "thousand", "a thousand"],
-        }
-
-        # Build wrong_sounds_map dynamically for numbers
-        _all_number_keys = [str(n) for n in [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,30,40,50,60,70,80,90,100,1000]]
-        wrong_sounds_map = {
-            "a": ["b", "c", "d", "e", "buh", "kuh", "dah", "eh", "apple", "ball", "cat", "dog", "elephant", "boy", "bear", "car", "cup", "door", "duck"],
-            "b": ["a", "c", "d", "e", "aaa", "kuh", "dah", "eh", "apple", "ball", "cat", "dog", "elephant", "car", "cup", "door", "duck"],
-            "c": ["a", "b", "d", "e", "aaa", "buh", "dah", "eh", "apple", "ball", "cat", "dog", "elephant", "boy", "bear", "door", "duck"],
-            "d": ["a", "b", "c", "e", "aaa", "buh", "kuh", "eh", "apple", "ball", "cat", "dog", "elephant", "boy", "bear", "car", "cup"],
-            "e": ["a", "b", "c", "d", "aaa", "buh", "kuh", "dah", "apple", "ball", "cat", "dog", "elephant", "boy", "bear", "car", "cup", "door", "duck"],
-        }
-        # For each number, wrong sounds = all OTHER number words
-        for nk in _all_number_keys:
-            own_variants = [v.lower() for v in target_sounds_map.get(nk, [nk])]
-            wrongs = []
-            for ok in _all_number_keys:
-                if ok != nk:
-                    wrongs.extend([v.lower() for v in target_sounds_map.get(ok, [ok])])
-            wrong_sounds_map[nk] = [w for w in wrongs if w not in own_variants]
-
         # 1. Check explicit wrong letter, wrong sound, or sample word
         is_explicit_wrong = False
         detected_wrong = ""
@@ -990,8 +1077,7 @@ async def evaluate_audio(
         # 2. Check explicit target letter sound or letter name match
         is_target_match = False
         if cleaned_stt:
-            valid_targets = target_sounds_map.get(target, [target_sound, target])
-            for t in valid_targets:
+            for t in global_valid_targets:
                 if t == cleaned_stt or t in stt_words or (len(t) > 1 and t in cleaned_stt):
                     is_target_match = True
                     break

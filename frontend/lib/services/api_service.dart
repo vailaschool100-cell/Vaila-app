@@ -4,8 +4,8 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   // Configurable backend URL (localhost for testing)
-  static const String baseUrl = 'http://127.0.0.1:8000/api';
-  static const String fallbackUrl = 'http://localhost:8000/api';
+  static const String baseUrl = 'https://vaila-app.onrender.com/api';
+  static const String fallbackUrl = 'https://vaila-app.onrender.com/api';
 
   /// Sends the recorded user audio file to Node.js backend for AI Voice Verification
   static Future<Map<String, dynamic>> verifyVoice({

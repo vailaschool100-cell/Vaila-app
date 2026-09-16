@@ -23,8 +23,8 @@ class PaymentUploadScreen extends StatefulWidget {
 }
 
 class _PaymentUploadScreenState extends State<PaymentUploadScreen> {
-  static const String apiUrl = 'http://127.0.0.1:8000';
-  static const String fallbackApiUrl = 'http://localhost:8000';
+  static const String apiUrl = 'https://vaila-app.onrender.com';
+  static const String fallbackApiUrl = 'https://vaila-app.onrender.com';
 
   final ImagePicker _picker = ImagePicker();
   XFile? _selectedImage;

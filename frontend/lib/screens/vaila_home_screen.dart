@@ -41,8 +41,8 @@ class VailaHomeScreen extends StatefulWidget {
 
 class _VailaHomeScreenState extends State<VailaHomeScreen>
     with TickerProviderStateMixin {
-  static const String apiUrl = 'http://127.0.0.1:8000';
-  static const String fallbackApiUrl = 'http://localhost:8000';
+  static const String apiUrl = 'https://vaila-app.onrender.com';
+  static const String fallbackApiUrl = 'https://vaila-app.onrender.com';
 
   // ───── Instruction points for the popup ─────
   static const List<String> _instructionPoints = [
@@ -312,7 +312,17 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
       _evalResult = null;
     });
 
-    final soundToSpeak = _currentAlphabet.sound;
+    final phoneticMap = {
+      'a': 'aaa', 'b': 'buh', 'c': 'kuh', 'd': 'duh', 'e': 'eh',
+      'f': 'fff', 'g': 'guh', 'h': 'huh', 'i': 'ih', 'j': 'juh',
+      'k': 'kuh', 'l': 'lll', 'm': 'mmm', 'n': 'nnn', 'o': 'oh',
+      'p': 'puh', 'q': 'quh', 'r': 'rrr', 's': 'sss', 't': 'tuh',
+      'u': 'uh', 'v': 'vvv', 'w': 'wuh', 'x': 'ks', 'y': 'yuh', 'z': 'zzz'
+    };
+    final letter = _currentAlphabet.letter.toLowerCase();
+    final phonic = phoneticMap[letter] ?? letter;
+    final word = _currentAlphabet.word;
+    final soundToSpeak = _isNumbersMode ? _currentAlphabet.sound : "${letter.toUpperCase()} for $phonic $word";
 
     for (int i = 0; i < 3; i++) {
       if (_cancelTtsLoop || !mounted) break;
@@ -581,7 +591,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF7C5CFC).withOpacity(0.12),
+                      color: const Color(0xFF1E3A8A).withOpacity(0.12),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.help_outline_rounded, color: Color(0xFF7C5CFC), size: 24),
@@ -593,7 +603,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                       style: GoogleFonts.outfit(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
-                        color: const Color(0xFF1E293B),
+                        color: const Color(0xFF1E3A8A),
                       ),
                     ),
                   ),
@@ -622,7 +632,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                       width: 24,
                       height: 24,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF7C5CFC).withOpacity(0.12),
+                        color: const Color(0xFF1E3A8A).withOpacity(0.12),
                         shape: BoxShape.circle,
                       ),
                       child: Center(
@@ -631,7 +641,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                           style: GoogleFonts.outfit(
                             fontSize: 12,
                             fontWeight: FontWeight.w800,
-                            color: const Color(0xFF7C5CFC),
+                            color: const Color(0xFF388E3C),
                           ),
                         ),
                       ),
@@ -686,27 +696,58 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
   //  BUILD — Redesigned UI (light theme matching mockup)
   // ═══════════════════════════════════════════════════════════════════
 
+
+  void _showExitPopup() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF333333),
+        title: const Text(
+          "Exit this lesson and choose another?",
+          style: TextStyle(color: Colors.white, fontSize: 16),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text("Cancel", style: TextStyle(color: Colors.lightGreenAccent)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              _cancelTtsLoop = true;
+              try { _flutterTts.stop(); } catch (_) {}
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              }
+            },
+            child: const Text("OK", style: TextStyle(color: Colors.lightGreenAccent)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FF),
+      backgroundColor: const Color(0xFFFBF8F1),
       body: SafeArea(
         child: Column(
           children: [
-            // ───── TOP BAR: Camera + Title + Star ─────
+                        // ───── TOP BAR: Mirror, Logo, Exit ─────
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Live Camera Preview Box (Video Call Style)
+                  // Camera Mirror (Top Left)
                   GestureDetector(
                     onTap: _toggleCamera,
                     child: Container(
-                      width: 74,
-                      height: 74,
+                      width: 90,
+                      height: 70,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(18),
+                        borderRadius: BorderRadius.circular(12),
                         color: const Color(0xFFE0E7FF),
                         boxShadow: [
                           BoxShadow(
@@ -717,7 +758,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                         ],
                       ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(18),
+                        borderRadius: BorderRadius.circular(12),
                         child: Stack(
                           fit: StackFit.expand,
                           children: [
@@ -733,50 +774,19 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                                 ),
                               )
                             else
-                              Center(
-                                child: Icon(
-                                  Icons.person_rounded,
-                                  color: const Color(0xFF7C5CFC).withOpacity(0.45),
-                                  size: 38,
+                              const Center(child: Icon(Icons.person, color: Colors.grey)),
+                            const Positioned(
+                              bottom: 2,
+                              left: 0,
+                              right: 0,
+                              child: Text(
+                                "Mirror",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Color(0xFF1E3A8A),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                              ),
-                            // "You" badge — top left
-                            Positioned(
-                              top: 5,
-                              left: 5,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF10B981),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  "You",
-                                  style: GoogleFonts.outfit(
-                                    color: Colors.white,
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            // Camera switch icon overlay — right center
-                            Positioned(
-                              right: 3,
-                              top: 24,
-                              child: Container(
-                                padding: const EdgeInsets.all(5),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      blurRadius: 6,
-                                    ),
-                                  ],
-                                ),
-                                child: const Icon(Icons.cameraswitch_rounded, color: Color(0xFF64748B), size: 13),
                               ),
                             ),
                           ],
@@ -785,103 +795,110 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                     ),
                   ),
 
-                  const SizedBox(width: 14),
+                  const SizedBox(width: 10),
 
-                  // Title Section (centered)
+                  // Title / Logo Section (Center)
                   Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 10),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.headphones_rounded, color: Color(0xFF7C5CFC), size: 22),
-                              const SizedBox(width: 6),
-                              Text(
-                                _isNumbersMode ? "Speak Up — Numbers" : "Speak Up",
-                                style: GoogleFonts.outfit(
-                                  fontSize: 21,
-                                  fontWeight: FontWeight.w900,
-                                  color: const Color(0xFF1E293B),
-                                ),
-                              ),
-                            ],
+                    child: Column(
+                      children: [
+                        Image.asset(
+                          'assets/logo.jpg',
+                          height: 80,
+                          errorBuilder: (ctx, err, stack) => const Icon(Icons.hearing, color: Color(0xFF1E3A8A), size: 40),
+                        ),
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1E3A8A),
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _isNumbersMode
-                                ? "Number Speaking Practice"
-                                : "Speech Practice for Deaf Students",
-                            style: GoogleFonts.outfit(
-                              fontSize: 12,
-                              color: const Color(0xFF9CA3AF),
-                              fontWeight: FontWeight.w500,
+                          child: const Text(
+                            "VSCI&HI",
+                            style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          "For Children with Hearing Aid\n& Cochlear Implant",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 8, color: Colors.grey),
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          "VAILA'S Speech\nTrainer",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Color(0xFF1E3A8A), fontSize: 14, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _isNumbersMode ? "NUMBERS" : "PHONICS",
+                          style: const TextStyle(color: Color(0xFFD32F2F), fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                        ),
+                        const SizedBox(height: 4),
+                        const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.star, color: Colors.amber, size: 12),
+                            SizedBox(width: 4),
+                            Text(
+                              "Inclusive Learning\nFor Every Child",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Color(0xFF1E3A8A), fontSize: 10, fontWeight: FontWeight.bold),
                             ),
-                          ),
-                        ],
-                      ),
+                            SizedBox(width: 4),
+                            Icon(Icons.star, color: Colors.amber, size: 12),
+                          ],
+                        )
+                      ],
                     ),
                   ),
 
                   const SizedBox(width: 10),
 
-                  // Settings icon with menu — top right
-                  Padding(
-                    padding: const EdgeInsets.only(top: 10),
-                    child: PopupMenuButton<String>(
-                      onSelected: (value) {
-                        if (value == 'back') {
-                          _cancelTtsLoop = true;
-                          try { _flutterTts.stop(); } catch (_) {}
-                          if (Navigator.of(context).canPop()) {
-                            Navigator.of(context).pop();
-                          }
-                        } else if (value == 'logout') {
-                          _handleLogout();
-                        }
-                      },
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      color: Colors.white,
-                      elevation: 8,
-                      offset: const Offset(0, 48),
-                      itemBuilder: (ctx) => [
-                        PopupMenuItem(
-                          value: 'back',
-                          child: Row(
+                  // Exit and Guidance Buttons (Top Right)
+                  Column(
+                    children: [
+                      GestureDetector(
+                        onTap: _showExitPopup,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                          ),
+                          child: const Column(
                             children: [
-                              const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF7C5CFC), size: 18),
-                              const SizedBox(width: 10),
-                              Text('Go Back', style: GoogleFonts.outfit(fontWeight: FontWeight.w600, color: const Color(0xFF1E293B))),
+                              Icon(Icons.close_rounded, color: Color(0xFFD32F2F), size: 24),
+                              Text("Exit", style: TextStyle(color: Color(0xFFD32F2F), fontSize: 10, fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ),
-                        PopupMenuItem(
-                          value: 'logout',
-                          child: Row(
-                            children: [
-                              const Icon(Icons.logout_rounded, color: Colors.redAccent, size: 18),
-                              const SizedBox(width: 10),
-                              Text('Logout', style: GoogleFonts.outfit(fontWeight: FontWeight.w600, color: Colors.redAccent)),
-                            ],
-                          ),
-                        ),
-                      ],
-                      child: Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF7C5CFC).withOpacity(0.12),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.settings_rounded, color: Color(0xFF7C5CFC), size: 22),
                       ),
-                    ),
+                      const SizedBox(height: 10),
+                      GestureDetector(
+                        onTap: _showInstructionsPopup,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                          ),
+                          child: const Column(
+                            children: [
+                              Icon(Icons.lightbulb_outline, color: Colors.purple, size: 24),
+                              Text("Guidance", style: TextStyle(color: Colors.purple, fontSize: 10, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-
             // ───── MAIN SCROLLABLE CONTENT ─────
             Expanded(
               child: SingleChildScrollView(
@@ -896,9 +913,9 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                         margin: const EdgeInsets.only(bottom: 18),
                         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF7C5CFC).withOpacity(0.1),
+                          color: const Color(0xFF1E3A8A).withOpacity(0.1),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: const Color(0xFF7C5CFC).withOpacity(0.25)),
+                          border: Border.all(color: const Color(0xFF1E3A8A).withOpacity(0.25)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -907,9 +924,9 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                             const Icon(Icons.volume_up_rounded, color: Color(0xFF7C5CFC), size: 20),
                             const SizedBox(width: 8),
                             Text(
-                              "\"${_currentAlphabet.sound}\" — $_speechCount of 3...",
+                              "\"${_currentAlphabet.word}\" — $_speechCount of 3...",
                               style: GoogleFonts.outfit(
-                                color: const Color(0xFF7C5CFC),
+                                color: const Color(0xFF1E3A8A),
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
                               ),
@@ -921,15 +938,15 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                     // Sound wave icon (green)
                     Icon(
                       Icons.graphic_eq_rounded,
-                      color: const Color(0xFF10B981),
+                      color: const Color(0xFFF57C00),
                       size: 30,
                     ),
 
                     const SizedBox(height: 8),
 
-                    // "Current Word" label
+                    // " " label
                     Text(
-                      "Current Word",
+                      " ",
                       style: GoogleFonts.outfit(
                         fontSize: 14,
                         color: const Color(0xFF9CA3AF),
@@ -960,9 +977,9 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                               ? _currentAlphabet.letter
                               : _currentAlphabet.letter.toUpperCase(),
                           style: GoogleFonts.outfit(
-                            fontSize: _isNumbersMode ? 72 : 100,
+                            fontSize: _isNumbersMode ? 90 : 120,
                             fontWeight: FontWeight.w900,
-                            color: const Color(0xFF1E293B),
+                            color: const Color(0xFF1E3A8A),
                             height: 1.15,
                           ),
                         ),
@@ -973,9 +990,9 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
 
                     // Subtitle
                     Text(
-                      "Let's practice this sound",
+                      "${_currentAlphabet.word}",
                       style: GoogleFonts.outfit(
-                        fontSize: 14,
+                        fontSize: 18,
                         color: const Color(0xFF9CA3AF),
                         fontWeight: FontWeight.w500,
                       ),
@@ -992,9 +1009,9 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
               ),
             ),
 
-            // ───── BOTTOM BAR: Progress + Instructions ─────
+            // ───── BOTTOM BAR: Progress ─────
             Container(
-              padding: const EdgeInsets.fromLTRB(20, 14, 16, 18),
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 18),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: const BorderRadius.only(
@@ -1034,7 +1051,6 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                               final bool isCurrent = index == _currentIndex;
                               final bool isActive = isCompleted || isCurrent;
 
-                              // For numbers mode with many items, show compact progress
                               if (_isNumbersMode) {
                                 return Expanded(
                                   child: Row(
@@ -1045,7 +1061,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                                             height: 2.5,
                                             decoration: BoxDecoration(
                                               color: isCompleted
-                                                  ? const Color(0xFF7C5CFC)
+                                                  ? const Color(0xFF1E3A8A)
                                                   : const Color(0xFFE2E8F0),
                                               borderRadius: BorderRadius.circular(2),
                                             ),
@@ -1061,17 +1077,8 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                                               decoration: BoxDecoration(
                                                 shape: BoxShape.circle,
                                                 color: isActive
-                                                    ? const Color(0xFF7C5CFC)
+                                                    ? const Color(0xFF1E3A8A)
                                                     : const Color(0xFFE2E8F0),
-                                                boxShadow: isCurrent
-                                                    ? [
-                                                        BoxShadow(
-                                                          color: const Color(0xFF7C5CFC).withOpacity(0.35),
-                                                          blurRadius: 8,
-                                                          spreadRadius: 1,
-                                                        )
-                                                      ]
-                                                    : [],
                                               ),
                                             ),
                                             const SizedBox(height: 3),
@@ -1081,7 +1088,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                                                 style: GoogleFonts.outfit(
                                                   fontSize: 8,
                                                   fontWeight: FontWeight.w700,
-                                                  color: const Color(0xFF7C5CFC),
+                                                  color: const Color(0xFF1E3A8A),
                                                 ),
                                               ),
                                           ],
@@ -1094,20 +1101,18 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                               return Expanded(
                                 child: Row(
                                   children: [
-                                    // Connecting line (before dot, except first)
                                     if (index > 0)
                                       Expanded(
                                         child: Container(
                                           height: 2.5,
                                           decoration: BoxDecoration(
                                             color: isCompleted
-                                                ? const Color(0xFF7C5CFC)
+                                                ? const Color(0xFF1E3A8A)
                                                 : const Color(0xFFE2E8F0),
                                             borderRadius: BorderRadius.circular(2),
                                           ),
                                         ),
                                       ),
-                                    // Dot + Label
                                     Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
@@ -1117,17 +1122,8 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                                           decoration: BoxDecoration(
                                             shape: BoxShape.circle,
                                             color: isActive
-                                                ? const Color(0xFF7C5CFC)
+                                                ? const Color(0xFF1E3A8A)
                                                 : const Color(0xFFE2E8F0),
-                                            boxShadow: isCurrent
-                                                ? [
-                                                    BoxShadow(
-                                                      color: const Color(0xFF7C5CFC).withOpacity(0.35),
-                                                      blurRadius: 8,
-                                                      spreadRadius: 1,
-                                                    )
-                                                  ]
-                                                : [],
                                           ),
                                         ),
                                         const SizedBox(height: 5),
@@ -1137,7 +1133,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                                             fontSize: 10,
                                             fontWeight: FontWeight.w700,
                                             color: isActive
-                                                ? const Color(0xFF7C5CFC)
+                                                ? const Color(0xFF1E3A8A)
                                                 : const Color(0xFF9CA3AF),
                                           ),
                                         ),
@@ -1148,7 +1144,6 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                               );
                             }),
                             const SizedBox(width: 10),
-                            // Trophy icon
                             Icon(
                               Icons.emoji_events_rounded,
                               color: _currentIndex >= _items.length
@@ -1157,46 +1152,6 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                               size: 24,
                             ),
                           ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(width: 14),
-
-                  // Instructions Button
-                  GestureDetector(
-                    onTap: _showInstructionsPopup,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1E293B),
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF1E293B).withOpacity(0.25),
-                                blurRadius: 10,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.help_outline_rounded,
-                            color: Colors.white,
-                            size: 22,
-                          ),
-                        ),
-                        const SizedBox(height: 5),
-                        Text(
-                          "Instructions",
-                          style: GoogleFonts.outfit(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF64748B),
-                          ),
                         ),
                       ],
                     ),
@@ -1210,7 +1165,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
     );
   }
 
-  // ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
   //  Bottom Section: Listen/Speak cards OR Listening/Evaluating/Results
   // ═══════════════════════════════════════════════════════════════════
 
@@ -1225,7 +1180,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF7C5CFC).withOpacity(0.1),
+              color: const Color(0xFF1E3A8A).withOpacity(0.1),
               blurRadius: 20,
               offset: const Offset(0, 6),
             ),
@@ -1241,7 +1196,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
             Text(
               "Evaluating Speech...",
               style: GoogleFonts.outfit(
-                color: const Color(0xFF1E293B),
+                color: const Color(0xFF1E3A8A),
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
               ),
@@ -1311,7 +1266,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
               style: GoogleFonts.outfit(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF1E293B),
+                color: const Color(0xFF1E3A8A),
               ),
             ),
             const SizedBox(height: 6),
@@ -1371,10 +1326,10 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: const Color(0xFF7C5CFC).withOpacity(0.3), width: 2),
+          border: Border.all(color: const Color(0xFF1E3A8A).withOpacity(0.3), width: 2),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF7C5CFC).withOpacity(0.08),
+              color: const Color(0xFF1E3A8A).withOpacity(0.08),
               blurRadius: 20,
               offset: const Offset(0, 6),
             ),
@@ -1388,11 +1343,11 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                 const Icon(Icons.mic_rounded, color: Color(0xFF7C5CFC), size: 22),
                 const SizedBox(width: 8),
                 Text(
-                  "Listening... say \"${_currentAlphabet.sound}\"",
+                  "Listening... say \"${_currentAlphabet.word}\"",
                   style: GoogleFonts.outfit(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF1E293B),
+                    color: const Color(0xFF1E3A8A),
                   ),
                 ),
               ],
@@ -1404,7 +1359,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
               child: LinearProgressIndicator(
                 value: _timeLeft / 12,
                 backgroundColor: const Color(0xFFE2E8F0),
-                color: const Color(0xFF7C5CFC),
+                color: const Color(0xFF1E3A8A),
                 minHeight: 6,
               ),
             ),
@@ -1479,7 +1434,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                 borderRadius: BorderRadius.circular(22),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF7C5CFC).withOpacity(0.08),
+                    color: const Color(0xFF1E3A8A).withOpacity(0.08),
                     blurRadius: 14,
                     offset: const Offset(0, 5),
                   ),
@@ -1490,7 +1445,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF7C5CFC).withOpacity(0.15),
+                      color: const Color(0xFF1E3A8A).withOpacity(0.15),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.hearing_rounded, color: Color(0xFF7C5CFC), size: 30),
@@ -1501,7 +1456,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                     style: GoogleFonts.outfit(
                       fontSize: 17,
                       fontWeight: FontWeight.w800,
-                      color: const Color(0xFF7C5CFC),
+                      color: const Color(0xFF1E3A8A),
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -1510,7 +1465,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                     textAlign: TextAlign.center,
                     style: GoogleFonts.outfit(
                       fontSize: 11,
-                      color: const Color(0xFF7C5CFC).withOpacity(0.65),
+                      color: const Color(0xFF1E3A8A).withOpacity(0.65),
                       fontWeight: FontWeight.w500,
                     ),
                   ),

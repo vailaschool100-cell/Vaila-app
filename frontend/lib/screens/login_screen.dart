@@ -17,8 +17,8 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  static const String apiUrl = 'http://127.0.0.1:8000';
-  static const String fallbackApiUrl = 'http://localhost:8000';
+  static const String apiUrl = 'https://vaila-app.onrender.com';
+  static const String fallbackApiUrl = 'https://vaila-app.onrender.com';
 
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -110,7 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         actions: [
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4361EE)),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1E3A8A)),
             onPressed: () => Navigator.pop(ctx),
             child: const Text("OK", style: TextStyle(color: Colors.white)),
           )
@@ -122,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFFFBF8F1),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -134,28 +134,22 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Center(
-                    child: Container(
-                      width: 80,
-                      height: 80,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(colors: [Color(0xFF06B6D4), Color(0xFF4361EE)]),
-                      ),
-                      child: Center(
-                        child: Text("V", style: GoogleFonts.outfit(fontSize: 44, fontWeight: FontWeight.bold, color: Colors.white)),
-                      ),
+                    child: Image.asset(
+                      'assets/logo.png',
+                      height: 120,
+                      errorBuilder: (ctx, err, stack) => const Icon(Icons.hearing, color: Color(0xFF1E3A8A), size: 80),
                     ),
                   ),
                   const SizedBox(height: 20),
                   Text(
                     "Welcome Back",
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.w900, color: const Color(0xFF38BDF8)),
+                    style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.w900, color: const Color(0xFF1E3A8A)),
                   ),
                   Text(
                     "Sign in to continue your phonetics learning",
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.outfit(fontSize: 14, color: const Color(0xFF94A3B8)),
+                    style: GoogleFonts.outfit(fontSize: 14, color: Colors.grey.shade600),
                   ),
                   const SizedBox(height: 32),
 
@@ -174,14 +168,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   // Username/Email Field
                   TextField(
                     controller: _emailController,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: Colors.black87),
                     decoration: InputDecoration(
                       labelText: "Username or Email",
                       labelStyle: const TextStyle(color: Color(0xFF94A3B8)),
                       prefixIcon: const Icon(Icons.person_rounded, color: Color(0xFF38BDF8)),
                       filled: true,
-                      fillColor: const Color(0xFF1E293B),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.black12)),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -190,14 +184,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   TextField(
                     controller: _passwordController,
                     obscureText: true,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: Colors.black87),
                     decoration: InputDecoration(
                       labelText: "Password",
                       labelStyle: const TextStyle(color: Color(0xFF94A3B8)),
                       prefixIcon: const Icon(Icons.lock_rounded, color: Color(0xFF38BDF8)),
                       filled: true,
-                      fillColor: const Color(0xFF1E293B),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.black12)),
                     ),
                   ),
 
@@ -205,7 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: _showForgotPasswordDialog,
-                      child: Text("Forgot password?", style: GoogleFonts.outfit(color: const Color(0xFF38BDF8), fontSize: 13)),
+                      child: Text("Forgot password?", style: GoogleFonts.outfit(color: const Color(0xFF1E3A8A), fontSize: 13)),
                     ),
                   ),
 
@@ -215,7 +209,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     height: 56,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF4361EE),
+                        backgroundColor: const Color(0xFF1E3A8A),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                         elevation: 4,
                       ),
@@ -231,7 +225,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text("Don't have an account? ", style: GoogleFonts.outfit(color: const Color(0xFF94A3B8))),
+                      Text("Don't have an account? ", style: GoogleFonts.outfit(color: Colors.grey.shade600)),
                       GestureDetector(
                         onTap: () {
                           Navigator.of(context).push(
@@ -240,7 +234,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                         child: Text(
                           "Sign Up",
-                          style: GoogleFonts.outfit(color: const Color(0xFF38BDF8), fontWeight: FontWeight.bold),
+                          style: GoogleFonts.outfit(color: const Color(0xFF1E3A8A), fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],
@@ -283,7 +277,7 @@ class _MonthlyPaymentModalState extends State<MonthlyPaymentModal> {
     setState(() => _isUploading = true);
 
     try {
-      final targetUrl = 'http://127.0.0.1:8000/api/auth/upload-monthly-payment';
+      final targetUrl = 'https://vaila-app.onrender.com/api/auth/upload-monthly-payment';
       final request = http.MultipartRequest('POST', Uri.parse(targetUrl));
 
       request.fields['username'] = widget.username;
