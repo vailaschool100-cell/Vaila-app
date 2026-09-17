@@ -498,7 +498,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
           }
         }
 
-        final streamedResponse = await request.send().timeout(const Duration(seconds: 12));
+        final streamedResponse = await request.send().timeout(const Duration(seconds: 45));
         final response = await http.Response.fromStream(streamedResponse);
 
         if (response.statusCode == 200) {
