@@ -782,7 +782,7 @@ def evaluate_audio_with_gemini(audio_bytes: bytes, target_options: str, mime_typ
             }
         }
 
-        models_to_try = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"]
+        models_to_try = ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.5-flash"]
         for model in models_to_try:
             try:
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={gemini_key}"
