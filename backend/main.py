@@ -782,7 +782,7 @@ def evaluate_audio_with_gemini(audio_bytes: bytes, target_options: str, mime_typ
             }
         }
 
-        models_to_try = ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.5-flash"]
+        models_to_try = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.5-flash"]
         for model in models_to_try:
             try:
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={gemini_key}"
@@ -792,7 +792,7 @@ def evaluate_audio_with_gemini(audio_bytes: bytes, target_options: str, mime_typ
                     data=req_data,
                     headers={"Content-Type": "application/json"}
                 )
-                with urllib.request.urlopen(req, timeout=30) as resp:
+                with urllib.request.urlopen(req, timeout=12) as resp:
                     if resp.status == 200:
                         res_body = resp.read().decode("utf-8")
                         res_json = json.loads(res_body)
@@ -968,14 +968,46 @@ async def evaluate_audio(
         # NO auto-pass: we listen to the actual audio and evaluate what was spoken.
         if not stt_transcription and audio_file_uploaded:
             try:
-                await file.seek(0)  # Ensure we read from the beginning
+                await file.seek(0)
                 audio_bytes = await file.read()
                 print(f"[DEBUG] Audio file received: {len(audio_bytes)} bytes, filename={file.filename}")
                 gemini_key = os.environ.get("GEMINI_API_KEY", "").strip()
                 print(f"[DEBUG] Gemini API key present: {bool(gemini_key)}, starts with: {gemini_key[:8] if gemini_key else 'NONE'}...")
+
                 if len(audio_bytes) > 300:
-                    # 1. Primary: SpeechRecognition library
-                    if _sr_available:
+                    # 1. PRIMARY: Gemini Multimodal Audio AI Evaluation with 50% Leniency
+                    if gemini_key:
+                        mime_type = "audio/wav" if audio_bytes.startswith(b'RIFF') else "audio/m4a"
+                        target_options_str = ", ".join(global_valid_targets)
+                        print(f"[DEBUG] Calling Gemini Multimodal AI with {len(audio_bytes)} bytes, mime={mime_type}...")
+                        gemini_res = evaluate_audio_with_gemini(audio_bytes, target_options_str, mime_type)
+                        print(f"[DEBUG] Gemini result: {gemini_res}")
+                        if gemini_res:
+                            stt_transcription = gemini_res.get("transcription", "").strip().lower()
+                            gemini_score = float(gemini_res.get("accuracy", 0))
+                            gemini_passed = gemini_res.get("passed", gemini_score >= 50.0)
+                            gemini_feedback = gemini_res.get("feedback", "")
+
+                            print(f"[GEMINI STT] Transcribed: '{stt_transcription}', Score: {gemini_score}%, Passed: {gemini_passed}")
+
+                            target_ipa = text_to_ipa(IPA_REFERENCE_WORDS.get(target, target_sound))
+                            spoken_ipa = text_to_ipa(stt_transcription or target.upper())
+                            _log_session(clean_student, target, stt_transcription or target.upper(), stt_transcription, target_ipa, spoken_ipa, gemini_score, gemini_passed)
+
+                            return EvaluationResponse(
+                                target_alphabet=target.upper(),
+                                phonetic_sound=target_sound,
+                                whisper_transcription=stt_transcription or target.upper(),
+                                spoken_ipa=spoken_ipa,
+                                target_ipa=target_ipa,
+                                accuracy=gemini_score,
+                                passed=gemini_passed,
+                                threshold=50.0,
+                                feedback=gemini_feedback or (f"Good effort! {gemini_score:.1f}% match." if gemini_passed else f"Try again! {gemini_score:.1f}% match."),
+                            )
+
+                    # 2. FALLBACK: SpeechRecognition library
+                    if _sr_available and not stt_transcription:
                         tmp_wav_path = None
                         tmp_orig_path = None
                         try:
@@ -994,7 +1026,7 @@ async def evaluate_audio(
                                 setup_ffmpeg()
                                 subprocess.run(
                                     ["ffmpeg", "-y", "-i", tmp_orig_path, "-ar", "16000", "-ac", "1", tmp_wav_path],
-                                    capture_output=True, timeout=10
+                                    capture_output=True, timeout=5
                                 )
 
                             if tmp_wav_path and os.path.exists(tmp_wav_path) and os.path.getsize(tmp_wav_path) > 300:
@@ -1006,7 +1038,7 @@ async def evaluate_audio(
                                         stt_transcription = server_text.strip().lower()
                                         print(f"[SERVER STT] Transcribed from audio: '{stt_transcription}'")
                                 except sr.UnknownValueError:
-                                    print("[SERVER STT] Could not understand audio — silence or unclear")
+                                    print("[SERVER STT] Could not understand audio")
                                 except sr.RequestError as e:
                                     print(f"[SERVER STT] Google API error: {e}")
                         except Exception as conv_err:
@@ -1018,51 +1050,6 @@ async def evaluate_audio(
                             if tmp_wav_path and os.path.exists(tmp_wav_path):
                                 try: os.unlink(tmp_wav_path)
                                 except: pass
-
-                    # 2. Fallback: Gemini Multimodal Audio AI Evaluation with 50% Leniency
-                    # Check again if local STT found a perfect match
-                    if stt_transcription:
-                        cleaned_stt = stt_transcription.strip(".,!? ").lower()
-                        stt_words = set(cleaned_stt.split())
-                        valid_targets = target_sounds_map.get(target, [target_sound, target])
-                        for t in valid_targets:
-                            if t == cleaned_stt or t in stt_words or (len(t) > 1 and t in cleaned_stt):
-                                is_target_match = True
-                                break
-                    
-                    # For deaf children, if it's NOT a perfect match, always use Gemini for lenient % scoring
-                    if not is_target_match:
-                        mime_type = "audio/wav" if audio_bytes.startswith(b'RIFF') else "audio/m4a"
-                        
-                        target_options_str = ", ".join(global_valid_targets)
-                        
-                        print(f"[DEBUG] Calling Gemini with {len(audio_bytes)} bytes, mime={mime_type}, targets={target_options_str[:100]}")
-                        gemini_res = evaluate_audio_with_gemini(audio_bytes, target_options_str, mime_type)
-                        print(f"[DEBUG] Gemini result: {gemini_res}")
-                        if gemini_res:
-                            stt_transcription = gemini_res.get("transcription", "").strip().lower()
-                            gemini_score = float(gemini_res.get("accuracy", 0))
-                            gemini_passed = gemini_res.get("passed", gemini_score >= 50.0)
-                            gemini_feedback = gemini_res.get("feedback", "")
-                            
-                            print(f"[GEMINI STT] Transcribed: '{stt_transcription}', Score: {gemini_score}%, Passed: {gemini_passed}")
-                            
-                            # Direct response from Gemini AI:
-                            target_ipa = text_to_ipa(IPA_REFERENCE_WORDS.get(target, target_sound))
-                            spoken_ipa = text_to_ipa(stt_transcription or target.upper())
-                            _log_session(clean_student, target, stt_transcription or target.upper(), stt_transcription, target_ipa, spoken_ipa, gemini_score, gemini_passed)
-                            
-                            return EvaluationResponse(
-                                target_alphabet=target.upper(),
-                                phonetic_sound=target_sound,
-                                whisper_transcription=stt_transcription or target.upper(),
-                                spoken_ipa=spoken_ipa,
-                                target_ipa=target_ipa,
-                                accuracy=gemini_score,
-                                passed=gemini_passed,
-                                threshold=50.0,
-                                feedback=gemini_feedback or (f"Good effort! {gemini_score:.1f}% match." if gemini_passed else f"Try again! {gemini_score:.1f}% match."),
-                            )
             except Exception as sr_err:
                 print(f"[SERVER STT] Error: {sr_err}")
 

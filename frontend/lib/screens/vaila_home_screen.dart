@@ -466,7 +466,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
   }
 
   Future<Map<String, dynamic>?> _sendToBackend(String audioPath, String targetLetter, String spokenText) async {
-    final urls = [apiUrl, fallbackApiUrl];
+    final urls = [apiUrl, fallbackApiUrl].toSet().toList();
 
     for (final baseUrl in urls) {
       try {
@@ -498,7 +498,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
           }
         }
 
-        final streamedResponse = await request.send().timeout(const Duration(seconds: 45));
+        final streamedResponse = await request.send().timeout(const Duration(seconds: 60));
         final response = await http.Response.fromStream(streamedResponse);
 
         if (response.statusCode == 200) {
