@@ -738,35 +738,65 @@ def evaluate_audio_with_gemini(audio_bytes: bytes, target_options: str, mime_typ
     if not gemini_key or len(audio_bytes) < 300:
         return None
 
+    prompt = (
+        f"You are a warm, encouraging speech evaluator for deaf children learning to speak.\n"
+        f"The student is trying to pronounce ANY of the following acceptable variants: '{target_options}'.\n"
+        f"Listen to the attached student audio recording carefully.\n\n"
+        f"EVALUATION INSTRUCTIONS FOR DEAF CHILDREN & 50% LENIENCY RULE:\n"
+        f"1. Deaf children might not articulate perfectly. You must be lenient and listen for approximations.\n"
+        f"2. Calculate a phonetic match accuracy score from 0 to 100% based on how close their attempt is to ANY of the acceptable variants.\n"
+        f"3. If they pronounce it perfectly or almost perfectly, assign a score of 95%.\n"
+        f"4. PASSING THRESHOLD IS 50%: If the child's attempt is 50% or closer to ANY of these variants ('{target_options}'), set 'passed': true and 'accuracy': <50 to 95>.\n"
+        f"5. FAIL RULE: If the child pronounced a completely different letter/number, or no speech at all, set 'passed': false and 'accuracy': <0 to 49> based on effort.\n"
+        f"6. Provide a short, encouraging 1-line feedback for the child mentioning their match score.\n\n"
+        f"Return ONLY valid JSON matching this schema without markdown code block backticks:\n"
+        f"{{\n"
+        f'  "transcription": "<word or sound heard>",\n'
+        f'  "accuracy": <integer 0 to 100>,\n'
+        f'  "passed": <boolean true or false>,\n'
+        f'  "feedback": "<1-line encouraging feedback with score>"\n'
+        f"}}"
+    )
+
+    models_to_try = ["gemini-1.5-flash", "gemini-2.0-flash-exp", "gemini-1.5-flash-8b", "gemini-1.5-pro"]
+
+    # 1. Primary Method: Official google.generativeai SDK
+    try:
+        import google.generativeai as genai
+        genai.configure(api_key=gemini_key)
+        for model_name in models_to_try:
+            try:
+                model = genai.GenerativeModel(model_name)
+                response = model.generate_content(
+                    [
+                        {"mime_type": mime_type, "data": audio_bytes},
+                        prompt
+                    ],
+                    generation_config={"temperature": 0.1, "response_mime_type": "application/json"}
+                )
+                if response and response.text:
+                    clean_text = response.text.strip()
+                    if clean_text.startswith("```json"): clean_text = clean_text[7:]
+                    if clean_text.endswith("```"): clean_text = clean_text[:-3]
+                    clean_text = clean_text.strip()
+                    eval_dict = json.loads(clean_text)
+                    print(f"[GEMINI EVALUATION SDK] Success with model {model_name}: {eval_dict}")
+                    return eval_dict
+            except Exception as sdk_err:
+                print(f"[GEMINI EVALUATION SDK] Model {model_name} notice: {sdk_err}")
+    except Exception as sdk_import_err:
+        print(f"[GEMINI EVALUATION SDK] SDK setup notice: {sdk_import_err}")
+
+    # 2. Fallback Method: REST API with correct camelCase payload (inlineData, mimeType)
     try:
         encoded_audio = base64.b64encode(audio_bytes).decode("utf-8")
-        prompt = (
-            f"You are a warm, encouraging speech evaluator for deaf children learning to speak.\n"
-            f"The student is trying to pronounce ANY of the following acceptable variants: '{target_options}'.\n"
-            f"Listen to the attached student audio recording carefully.\n\n"
-            f"EVALUATION INSTRUCTIONS FOR DEAF CHILDREN & 50% LENIENCY RULE:\n"
-            f"1. Deaf children might not articulate perfectly. You must be lenient and listen for approximations.\n"
-            f"2. Calculate a phonetic match accuracy score from 0 to 100% based on how close their attempt is to ANY of the acceptable variants.\n"
-            f"3. If they pronounce it perfectly or almost perfectly, assign a score of 95%.\n"
-            f"4. PASSING THRESHOLD IS 50%: If the child's attempt is 50% or closer to ANY of these variants ('{target_options}'), set 'passed': true and 'accuracy': <50 to 95>.\n"
-            f"5. FAIL RULE: If the child pronounced a completely different letter/number, or no speech at all, set 'passed': false and 'accuracy': <0 to 49> based on effort.\n"
-            f"6. Provide a short, encouraging 1-line feedback for the child mentioning their match score.\n\n"
-            f"Return ONLY valid JSON matching this schema without markdown code block backticks:\n"
-            f"{{\n"
-            f'  "transcription": "<word or sound heard>",\n'
-            f'  "accuracy": <integer 0 to 100>,\n'
-            f'  "passed": <boolean true or false>,\n'
-            f'  "feedback": "<1-line encouraging feedback with score>"\n'
-            f"}}"
-        )
-
         payload = {
             "contents": [
                 {
                     "parts": [
                         {
-                            "inline_data": {
-                                "mime_type": mime_type,
+                            "inlineData": {
+                                "mimeType": mime_type,
                                 "data": encoded_audio
                             }
                         },
@@ -782,39 +812,38 @@ def evaluate_audio_with_gemini(audio_bytes: bytes, target_options: str, mime_typ
             }
         }
 
-        models_to_try = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.5-flash"]
-        for model in models_to_try:
-            try:
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={gemini_key}"
-                req_data = json.dumps(payload).encode("utf-8")
-                req = urllib.request.Request(
-                    url,
-                    data=req_data,
-                    headers={"Content-Type": "application/json"}
-                )
-                with urllib.request.urlopen(req, timeout=12) as resp:
-                    if resp.status == 200:
-                        res_body = resp.read().decode("utf-8")
-                        res_json = json.loads(res_body)
-                        candidates = res_json.get("candidates", [])
-                        if candidates:
-                            text_content = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
-                            clean_text = text_content.strip()
-                            if clean_text.startswith("```json"):
-                                clean_text = clean_text[7:]
-                            if clean_text.endswith("```"):
-                                clean_text = clean_text[:-3]
-                            clean_text = clean_text.strip()
-                            
-                            eval_dict = json.loads(clean_text)
-                            print(f"[GEMINI EVALUATION] Success with model {model}: {eval_dict}")
-                            return eval_dict
-            except Exception as m_err:
-                print(f"[GEMINI EVALUATION] Model {model} notice: {m_err}")
-                continue
+        endpoints = ["v1beta", "v1"]
+        for version in endpoints:
+            for model in models_to_try:
+                try:
+                    url = f"https://generativelanguage.googleapis.com/{version}/models/{model}:generateContent?key={gemini_key}"
+                    req_data = json.dumps(payload).encode("utf-8")
+                    req = urllib.request.Request(
+                        url,
+                        data=req_data,
+                        headers={"Content-Type": "application/json"}
+                    )
+                    with urllib.request.urlopen(req, timeout=12) as resp:
+                        if resp.status == 200:
+                            res_body = resp.read().decode("utf-8")
+                            res_json = json.loads(res_body)
+                            candidates = res_json.get("candidates", [])
+                            if candidates:
+                                text_content = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+                                clean_text = text_content.strip()
+                                if clean_text.startswith("```json"): clean_text = clean_text[7:]
+                                if clean_text.endswith("```"): clean_text = clean_text[:-3]
+                                clean_text = clean_text.strip()
+                                
+                                eval_dict = json.loads(clean_text)
+                                print(f"[GEMINI EVALUATION REST] Success with {version}/{model}: {eval_dict}")
+                                return eval_dict
+                except Exception as m_err:
+                    print(f"[GEMINI EVALUATION REST] Endpoint {version}/{model} notice: {m_err}")
+                    continue
     except Exception as e:
-        print(f"[GEMINI EVALUATION] General error: {e}")
-    
+        print(f"[GEMINI EVALUATION REST] General error: {e}")
+
     return None
 
 @app.post("/api/evaluate-audio", response_model=EvaluationResponse)
