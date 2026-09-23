@@ -846,7 +846,7 @@ def evaluate_audio_with_gemini(audio_bytes: bytes, target_options: str, mime_typ
         f"}}"
     )
 
-    models_to_try = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-flash-latest", "gemini-2.0-flash-lite", "gemini-2.0-flash-exp", "gemini-1.5-pro"]
+    models_to_try = ["gemini-2.0-flash", "gemini-1.5-flash"]
 
     # 1. Primary Method: Official google.generativeai SDK
     try:
@@ -900,7 +900,7 @@ def evaluate_audio_with_gemini(audio_bytes: bytes, target_options: str, mime_typ
             }
         }
 
-        endpoints = ["v1beta", "v1"]
+        endpoints = ["v1beta"]
         for version in endpoints:
             for model in models_to_try:
                 try:
@@ -917,7 +917,7 @@ def evaluate_audio_with_gemini(audio_bytes: bytes, target_options: str, mime_typ
                         data=req_data,
                         headers=headers
                     )
-                    with urllib.request.urlopen(req, timeout=12) as resp:
+                    with urllib.request.urlopen(req, timeout=8) as resp:
                         if resp.status == 200:
                             res_body = resp.read().decode("utf-8")
                             res_json = json.loads(res_body)
@@ -1096,6 +1096,10 @@ async def evaluate_audio(
                 print(f"[DEBUG] Audio file received: {len(audio_bytes)} bytes, filename={file.filename}")
                 groq_key = os.environ.get("GROQ_API_KEY", "").strip()
                 gemini_key = os.environ.get("GEMINI_API_KEY", "").strip()
+                # Smart detection: if GEMINI_API_KEY contains a Groq key, use it as groq_key
+                if not groq_key and gemini_key.startswith("gsk_"):
+                    groq_key = gemini_key
+                    gemini_key = ""
                 active_key = groq_key or gemini_key
 
                 key_source = "GROQ_API_KEY" if groq_key else ("GEMINI_API_KEY" if gemini_key else "NONE")
