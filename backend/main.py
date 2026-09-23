@@ -1094,13 +1094,15 @@ async def evaluate_audio(
                 await file.seek(0)
                 audio_bytes = await file.read()
                 print(f"[DEBUG] Audio file received: {len(audio_bytes)} bytes, filename={file.filename}")
+                groq_key = os.environ.get("GROQ_API_KEY", "").strip()
                 gemini_key = os.environ.get("GEMINI_API_KEY", "").strip()
-                print(f"[DEBUG] Gemini API key present: {bool(gemini_key)}, starts with: {gemini_key[:8] if gemini_key else 'NONE'}...")
+                active_key = groq_key or gemini_key
+
+                key_source = "GROQ_API_KEY" if groq_key else ("GEMINI_API_KEY" if gemini_key else "NONE")
+                print(f"[DEBUG] AI API key ({key_source}) present: {bool(active_key)}, starts with: {active_key[:8] if active_key else 'NONE'}...")
 
                 if len(audio_bytes) > 300:
                     # 1. PRIMARY: AI Speech & Phonetic Evaluation with 50% Leniency (Groq or Gemini)
-                    groq_env_key = os.environ.get("GROQ_API_KEY", "").strip()
-                    active_key = gemini_key or groq_env_key
                     if active_key:
                         mime_type = "audio/wav" if audio_bytes.startswith(b'RIFF') else "audio/m4a"
                         target_options_str = ", ".join(global_valid_targets)
@@ -1114,9 +1116,9 @@ async def evaluate_audio(
                         else:
                             print(f"[DEBUG] Calling Gemini Multimodal AI with {len(audio_bytes)} bytes, mime={mime_type}...")
                             gemini_res = evaluate_audio_with_gemini(audio_bytes, target_options_str, mime_type)
-                            if not gemini_res and groq_env_key and groq_env_key.startswith("gsk_"):
+                            if not gemini_res and groq_key and groq_key.startswith("gsk_"):
                                 print("[DEBUG] Gemini failed, attempting Groq fallback...")
-                                gemini_res = evaluate_audio_with_groq(audio_bytes, target_options_str, groq_env_key, mime_type)
+                                gemini_res = evaluate_audio_with_groq(audio_bytes, target_options_str, groq_key, mime_type)
 
                         # Graceful Fallback: If cloud AI keys fail/403, evaluate student speech attempt with 50% leniency rule
                         if not gemini_res and len(audio_bytes) > 2500:
