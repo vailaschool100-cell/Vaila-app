@@ -249,6 +249,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
     await _flutterTts.setLanguage('en-US');
     await _flutterTts.setSpeechRate(0.42);
     await _flutterTts.setPitch(1.25);
+    await _flutterTts.awaitSpeakCompletion(true);
     if (kIsWeb) {
       try {
         var voices = await _flutterTts.getVoices;
@@ -314,11 +315,11 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
     });
 
     final phoneticMap = {
-      'a': 'aaa', 'b': 'buh', 'c': 'kuh', 'd': 'duh', 'e': 'eh',
-      'f': 'fff', 'g': 'guh', 'h': 'huh', 'i': 'ih', 'j': 'juh',
-      'k': 'kuh', 'l': 'lll', 'm': 'mmm', 'n': 'nnn', 'o': 'oh',
-      'p': 'puh', 'q': 'quh', 'r': 'rrr', 's': 'sss', 't': 'tuh',
-      'u': 'uh', 'v': 'vvv', 'w': 'wuh', 'x': 'ks', 'y': 'yuh', 'z': 'zzz'
+      'a': 'ah', 'b': 'buh', 'c': 'kuh', 'd': 'duh', 'e': 'eh',
+      'f': 'feh', 'g': 'guh', 'h': 'huh', 'i': 'ih', 'j': 'juh',
+      'k': 'kuh', 'l': 'leh', 'm': 'muh', 'n': 'nuh', 'o': 'oh',
+      'p': 'puh', 'q': 'quh', 'r': 'ruh', 's': 'suh', 't': 'tuh',
+      'u': 'uh', 'v': 'vuh', 'w': 'wuh', 'x': 'ks', 'y': 'yuh', 'z': 'zuh'
     };
     final letter = _currentAlphabet.letter.toLowerCase();
     final phonic = phoneticMap[letter] ?? letter;
@@ -328,7 +329,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
     for (int i = 0; i < 3; i++) {
       if (_cancelTtsLoop || !mounted) break;
       await _flutterTts.speak(soundToSpeak);
-      await Future.delayed(const Duration(milliseconds: 1400));
+      await Future.delayed(const Duration(milliseconds: 600));
     }
 
     if (!mounted) return;

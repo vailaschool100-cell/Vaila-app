@@ -143,7 +143,7 @@ def init_db():
         # Alphabets
         if db.alphabets.count_documents({}) == 0:
             default_alphabets = [
-                {"id": "a", "letter": "a", "phonetic_sound": "aaa", "sample_word": "Apple", "repeat_count": 3, "tips": "Open mouth wide for 'aaa'."},
+                {"id": "a", "letter": "a", "phonetic_sound": "ah", "sample_word": "Apple", "repeat_count": 3, "tips": "Open mouth wide for 'ah'."},
                 {"id": "b", "letter": "b", "phonetic_sound": "buh", "sample_word": "Ball", "repeat_count": 3, "tips": "Press lips together for 'buh'."},
                 {"id": "c", "letter": "c", "phonetic_sound": "kuh", "sample_word": "Cat", "repeat_count": 3, "tips": "Make a crisp 'kuh' sound."},
                 {"id": "d", "letter": "d", "phonetic_sound": "dah", "sample_word": "Dog", "repeat_count": 3, "tips": "Touch tongue to teeth for 'dah'."},
