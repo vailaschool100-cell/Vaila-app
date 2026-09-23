@@ -732,7 +732,95 @@ def get_alphabets():
         conn = sqlite3.connect("vaila.db")
         conn.row_factory = sqlite3.Row
         rows = conn.execute("SELECT * FROM alphabets").fetchall()
-        conn.close()
+def evaluate_audio_with_groq(audio_bytes: bytes, target_options: str, groq_key: str, mime_type: str = "audio/wav") -> Optional[dict]:
+    if not groq_key or len(audio_bytes) < 300:
+        return None
+    try:
+        boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW"
+        filename = "audio.wav" if mime_type == "audio/wav" else "audio.m4a"
+
+        body = []
+        body.append(f"--{boundary}".encode("utf-8"))
+        body.append(f'Content-Disposition: form-data; name="model"'.encode("utf-8"))
+        body.append(b"")
+        body.append(b"whisper-large-v3-turbo")
+
+        body.append(f"--{boundary}".encode("utf-8"))
+        body.append(f'Content-Disposition: form-data; name="file"; filename="{filename}"'.encode("utf-8"))
+        body.append(f'Content-Type: {mime_type}'.encode("utf-8"))
+        body.append(b"")
+        body.append(audio_bytes)
+
+        body.append(f"--{boundary}--".encode("utf-8"))
+        body.append(b"")
+
+        req_body = b"\r\n".join(body)
+
+        req = urllib.request.Request(
+            "https://api.groq.com/openai/v1/audio/transcriptions",
+            data=req_body,
+            headers={
+                "Content-Type": f"multipart/form-data; boundary={boundary}",
+                "Authorization": f"Bearer {groq_key}"
+            }
+        )
+
+        transcription_text = ""
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            if resp.status == 200:
+                res_data = json.loads(resp.read().decode("utf-8"))
+                transcription_text = res_data.get("text", "").strip()
+                print(f"[GROQ WHISPER] Transcribed: '{transcription_text}'")
+
+        if not transcription_text:
+            return None
+
+        prompt = (
+            f"You are a warm, encouraging speech evaluator for deaf children learning to speak.\n"
+            f"The student attempted to say one of these target variants: '{target_options}'.\n"
+            f"Transcribed audio speech: '{transcription_text}'.\n\n"
+            f"EVALUATION INSTRUCTIONS:\n"
+            f"1. Calculate phonetic match accuracy score from 0 to 100% comparing student attempt '{transcription_text}' against target options '{target_options}'.\n"
+            f"2. 50% LENIENCY RULE: If match is 50% or closer, set 'passed': true and 'accuracy': <50 to 95>.\n"
+            f"3. Otherwise, set 'passed': false and 'accuracy': <0 to 49>.\n"
+            f"4. Provide 1-line encouraging feedback.\n\n"
+            f"Return ONLY valid JSON matching this schema:\n"
+            f"{{\n"
+            f'  "transcription": "{transcription_text}",\n'
+            f'  "accuracy": 85,\n'
+            f'  "passed": true,\n'
+            f'  "feedback": "Encouraging 1-line feedback for the child."\n'
+            f"}}"
+        )
+
+        chat_payload = {
+            "model": "llama-3.3-70b-versatile",
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.1,
+            "response_format": {"type": "json_object"}
+        }
+
+        chat_req = urllib.request.Request(
+            "https://api.groq.com/openai/v1/chat/completions",
+            data=json.dumps(chat_payload).encode("utf-8"),
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {groq_key}"
+            }
+        )
+        with urllib.request.urlopen(chat_req, timeout=10) as chat_resp:
+            if chat_resp.status == 200:
+                chat_res = json.loads(chat_resp.read().decode("utf-8"))
+                choice_text = chat_res.get("choices", [{}])[0].get("message", {}).get("content", "")
+                eval_dict = json.loads(choice_text.strip())
+                print(f"[GROQ EVALUATION] Success: {eval_dict}")
+                return eval_dict
+
+    except Exception as e:
+        print(f"[GROQ EVALUATION] Error: {e}")
+
+    return None
+
 def evaluate_audio_with_gemini(audio_bytes: bytes, target_options: str, mime_type: str = "audio/wav") -> Optional[dict]:
     gemini_key = os.environ.get("GEMINI_API_KEY", "").strip()
     if not gemini_key or len(audio_bytes) < 300:
@@ -1010,13 +1098,21 @@ async def evaluate_audio(
                 print(f"[DEBUG] Gemini API key present: {bool(gemini_key)}, starts with: {gemini_key[:8] if gemini_key else 'NONE'}...")
 
                 if len(audio_bytes) > 300:
-                    # 1. PRIMARY: Gemini Multimodal Audio AI Evaluation with 50% Leniency
-                    if gemini_key:
+                    # 1. PRIMARY: AI Speech & Phonetic Evaluation with 50% Leniency (Groq or Gemini)
+                    groq_env_key = os.environ.get("GROQ_API_KEY", "").strip()
+                    active_key = gemini_key or groq_env_key
+                    if active_key:
                         mime_type = "audio/wav" if audio_bytes.startswith(b'RIFF') else "audio/m4a"
                         target_options_str = ", ".join(global_valid_targets)
-                        print(f"[DEBUG] Calling Gemini Multimodal AI with {len(audio_bytes)} bytes, mime={mime_type}...")
-                        gemini_res = evaluate_audio_with_gemini(audio_bytes, target_options_str, mime_type)
-                        print(f"[DEBUG] Gemini result: {gemini_res}")
+                        
+                        if active_key.startswith("gsk_"):
+                            print(f"[DEBUG] Calling Groq Cloud AI with {len(audio_bytes)} bytes...")
+                            gemini_res = evaluate_audio_with_groq(audio_bytes, target_options_str, active_key, mime_type)
+                        else:
+                            print(f"[DEBUG] Calling Gemini Multimodal AI with {len(audio_bytes)} bytes, mime={mime_type}...")
+                            gemini_res = evaluate_audio_with_gemini(audio_bytes, target_options_str, mime_type)
+                        
+                        print(f"[DEBUG] AI Evaluation result: {gemini_res}")
                         if gemini_res:
                             stt_transcription = gemini_res.get("transcription", "").strip().lower()
                             gemini_score = float(gemini_res.get("accuracy", 0))
