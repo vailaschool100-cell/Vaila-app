@@ -897,7 +897,13 @@ def evaluate_audio_with_gemini(audio_bytes: bytes, target_options: str, mime_typ
             "generationConfig": {
                 "temperature": 0.1,
                 "responseMimeType": "application/json"
-            }
+            },
+            "safetySettings": [
+                {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+                {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+                {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+                {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"}
+            ]
         }
 
         endpoints = ["v1beta", "v1"]
