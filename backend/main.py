@@ -846,7 +846,7 @@ def evaluate_audio_with_gemini(audio_bytes: bytes, target_options: str, mime_typ
         f"}}"
     )
 
-    models_to_try = ["gemini-flash-latest", "gemini-2.5-flash", "gemini-pro-latest"]
+    models_to_try = ["gemini-flash-lite-latest", "gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-2.5-flash", "gemini-pro-latest"]
 
     # 1. Primary Method: Official google.generativeai SDK
     try:
