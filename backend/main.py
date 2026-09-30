@@ -900,7 +900,7 @@ def evaluate_audio_with_gemini(audio_bytes: bytes, target_options: str, mime_typ
             }
         }
 
-        endpoints = ["v1beta"]
+        endpoints = ["v1beta", "v1"]
         for version in endpoints:
             for model in models_to_try:
                 try:
