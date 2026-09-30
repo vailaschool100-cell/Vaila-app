@@ -827,22 +827,29 @@ def evaluate_audio_with_gemini(audio_bytes: bytes, target_options: str, mime_typ
         return None
 
     prompt = (
-        f"You are a warm, encouraging speech evaluator for deaf children learning to speak.\n"
-        f"The student is trying to pronounce ANY of the following acceptable variants: '{target_options}'.\n"
-        f"Listen to the attached student audio recording carefully.\n\n"
-        f"EVALUATION INSTRUCTIONS FOR DEAF CHILDREN & 50% LENIENCY RULE:\n"
-        f"1. Deaf children might not articulate perfectly. You must be lenient and listen for approximations.\n"
-        f"2. Calculate a phonetic match accuracy score from 0 to 100% based on how close their attempt is to ANY of the acceptable variants.\n"
-        f"3. If they pronounce it perfectly or almost perfectly, assign a score of 95%.\n"
-        f"4. PASSING THRESHOLD IS 50%: If the child's attempt is 50% or closer to ANY of these variants ('{target_options}'), set 'passed': true and 'accuracy': <50 to 95>.\n"
-        f"5. FAIL RULE: If the child pronounced a completely different letter/number, or no speech at all, set 'passed': false and 'accuracy': <0 to 49> based on effort.\n"
-        f"6. Provide a short, encouraging 1-line feedback for the child mentioning their match score.\n\n"
+        f"You are a strict but encouraging speech evaluator for deaf children learning to speak.\n"
+        f"The student is trying to pronounce the letter/number and its acceptable sound variants: '{target_options}'.\n"
+        f"Listen carefully to the attached audio recording.\n\n"
+        f"STRICT EVALUATION RULES:\n"
+        f"1. FIRST, identify what sound/letter the child actually said.\n"
+        f"2. THEN check: does it phonetically belong to ANY of the acceptable variants listed in '{target_options}'?\n"
+        f"   - Acceptable variants include the letter name, its phonetic sound, and a word starting with that letter.\n"
+        f"   - Example for E: acceptable = 'E', 'eh sound', 'elephant'. If child says 'aaaa' or 'buh' or 'dog' → FAIL.\n"
+        f"3. PASS CONDITION: The child's sound must be a recognizable attempt at ONE of '{target_options}'.\n"
+        f"   - If it matches (even imperfectly due to deaf articulation), score 50-95 based on clarity.\n"
+        f"   - Perfect match = 90-95%, good attempt = 70-89%, partial/unclear = 50-69%.\n"
+        f"4. FAIL CONDITION (STRICT): If the child said a COMPLETELY DIFFERENT letter, number, or unrelated sound\n"
+        f"   that has NO phonetic relation to '{target_options}', set passed=false and accuracy=0-49.\n"
+        f"   - Do NOT give benefit of the doubt if the sound is clearly a different letter.\n"
+        f"   - Silence or background noise only = accuracy 0, passed=false.\n"
+        f"5. Leniency allowed ONLY for articulation quality (slurred, quiet, unclear) — NOT for wrong letters.\n"
+        f"6. Provide a short 1-line feedback mentioning the score and what was heard.\n\n"
         f"Return ONLY valid JSON matching this schema without markdown code block backticks:\n"
         f"{{\n"
         f'  "transcription": "<word or sound heard>",\n'
         f'  "accuracy": <integer 0 to 100>,\n'
         f'  "passed": <boolean true or false>,\n'
-        f'  "feedback": "<1-line encouraging feedback with score>"\n'
+        f'  "feedback": "<1-line feedback mentioning score and what was heard>"\n'
         f"}}"
     )
 
