@@ -846,7 +846,7 @@ def evaluate_audio_with_gemini(audio_bytes: bytes, target_options: str, mime_typ
         f"}}"
     )
 
-    models_to_try = ["gemini-2.5-flash", "gemini-flash-latest"]
+    models_to_try = ["gemini-flash-latest", "gemini-2.5-flash", "gemini-pro-latest"]
 
     # 1. Primary Method: Official google.generativeai SDK
     try:
@@ -923,7 +923,7 @@ def evaluate_audio_with_gemini(audio_bytes: bytes, target_options: str, mime_typ
                         data=req_data,
                         headers=headers
                     )
-                    with urllib.request.urlopen(req, timeout=8) as resp:
+                    with urllib.request.urlopen(req, timeout=30) as resp:
                         if resp.status == 200:
                             res_body = resp.read().decode("utf-8")
                             res_json = json.loads(res_body)
