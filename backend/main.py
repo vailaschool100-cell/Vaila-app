@@ -905,7 +905,7 @@ def evaluate_audio_with_gemini(audio_bytes: bytes, target_options: str, mime_typ
             for model in models_to_try:
                 try:
                     headers = {"Content-Type": "application/json"}
-                    if gemini_key.startswith("AQ.") or gemini_key.startswith("ya29."):
+                    if gemini_key.startswith("ya29."):
                         headers["Authorization"] = f"Bearer {gemini_key}"
                         url = f"https://generativelanguage.googleapis.com/{version}/models/{model}:generateContent"
                     else:
