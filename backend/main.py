@@ -51,7 +51,7 @@ except ImportError:
 from dotenv import load_dotenv
 load_dotenv()
 
-from fastapi import FastAPI, File, UploadFile, Form, HTTPException
+from fastapi import FastAPI, File, UploadFile, Form, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -123,7 +123,7 @@ def send_email_notification(to_email: str, subject: str, body_text: str):
             msg['Subject'] = subject
             msg.attach(MIMEText(body_text, 'plain'))
 
-            with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+            with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=10) as server:
                 server.login(SMTP_USER, SMTP_PASS)
                 server.send_message(msg)
             print(f"✅ Real Email sent successfully to {to_email}!\n")
@@ -369,6 +369,7 @@ class LoginRequest(BaseModel):
 # ─── Auth Routes ──────────────────────────────────────────────────────────────
 @app.post("/api/auth/register")
 async def register(
+    background_tasks: BackgroundTasks,
     username: str = Form(...),
     email: str = Form(...),
     password: str = Form(...),
@@ -419,8 +420,9 @@ async def register(
         conn.commit()
         conn.close()
 
-    # Send Notification Email to Admin
-    send_email_notification(
+    # Send Notification Email to Admin (non-blocking: runs after the response is sent)
+    background_tasks.add_task(
+        send_email_notification,
         "ak1096561@gmail.com",
         f"🚨 New User Signup Alert: {username}",
         f"Hello Admin,\n\nA new user '{username}' ({email}) has registered and submitted a bank payment screenshot for approval.\n\nPlease log into the Admin Dashboard to review and approve/reject the user."
@@ -494,6 +496,7 @@ def login(req: LoginRequest):
 
 @app.post("/api/auth/upload-monthly-payment")
 async def upload_monthly_payment(
+    background_tasks: BackgroundTasks,
     username: str = Form(...),
     month: str = Form(...),
     year: str = Form(...),
@@ -536,7 +539,8 @@ async def upload_monthly_payment(
         conn.commit()
         conn.close()
 
-    send_email_notification(
+    background_tasks.add_task(
+        send_email_notification,
         "ak1096561@gmail.com",
         f"💳 Monthly Fee Screenshot Uploaded: {target_user_name}",
         f"User '{target_user_name}' uploaded a monthly fee payment screenshot for {month} {year}.\nPlease verify and activate the user."
@@ -646,7 +650,7 @@ def get_all_users():
 
 
 @app.post("/api/admin/approve-user")
-def approve_user(username: Optional[str] = Form(None), user_id: Optional[str] = Form(None)):
+def approve_user(background_tasks: BackgroundTasks, username: Optional[str] = Form(None), user_id: Optional[str] = Form(None)):
     current_month = time.strftime("%Y-%m")
     user_email = None
     target_identifier = (username or user_id or "").strip()
@@ -702,7 +706,8 @@ def approve_user(username: Optional[str] = Form(None), user_id: Optional[str] = 
         conn.close()
 
     if user_email:
-        send_email_notification(
+        background_tasks.add_task(
+            send_email_notification,
             user_email,
             "🎉 Vaila App Account Approved / Reactivated!",
             f"Hello {canonical_username},\n\nYour payment screenshot has been verified and your account is now active!\n\nYou can now open Vaila App, log in, and start your phonetics learning."
@@ -712,7 +717,7 @@ def approve_user(username: Optional[str] = Form(None), user_id: Optional[str] = 
 
 
 @app.post("/api/admin/deactivate-user")
-def deactivate_user(username: Optional[str] = Form(None), user_id: Optional[str] = Form(None)):
+def deactivate_user(background_tasks: BackgroundTasks, username: Optional[str] = Form(None), user_id: Optional[str] = Form(None)):
     user_email = None
     target_identifier = (username or user_id or "").strip()
 
@@ -759,7 +764,8 @@ def deactivate_user(username: Optional[str] = Form(None), user_id: Optional[str]
         conn.close()
 
     if user_email:
-        send_email_notification(
+        background_tasks.add_task(
+            send_email_notification,
             user_email,
             "⚠️ Vaila App Account Deactivated",
             f"Hello {canonical_username},\n\nYour account has been deactivated due to overdue monthly fee. Please upload your payment screenshot to reactivate your account."
