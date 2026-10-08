@@ -924,7 +924,8 @@ def evaluate_audio_with_gemini(audio_bytes: bytes, target_options: str, mime_typ
                         {"mime_type": mime_type, "data": audio_bytes},
                         prompt
                     ],
-                    generation_config={"temperature": 0.1, "response_mime_type": "application/json"}
+                    generation_config={"temperature": 0.1, "response_mime_type": "application/json"},
+                    request_options={"timeout": 10}
                 )
                 if response and response.text:
                     clean_text = response.text.strip()
