@@ -173,7 +173,11 @@ def init_db():
         cursor = conn.cursor()
         cursor.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT, email TEXT, password_hash TEXT, role TEXT, avatar_url TEXT, registration_screenshot TEXT, is_approved INTEGER, is_active INTEGER, registration_month TEXT, last_payment_month TEXT, created_at TEXT)")
         cursor.execute("CREATE TABLE IF NOT EXISTS payment_requests (id INTEGER PRIMARY KEY, user_id INTEGER, username TEXT, month TEXT, year TEXT, screenshot_url TEXT, status TEXT, created_at TEXT)")
-        cursor.execute("CREATE TABLE IF NOT EXISTS session_logs (id INTEGER PRIMARY KEY, student TEXT, alphabet TEXT, spoken_sound TEXT, whisper_transcription TEXT, target_ipa TEXT, spoken_ipa TEXT, accuracy REAL, passed INTEGER, timestamp TEXT)")
+        cursor.execute("CREATE TABLE IF NOT EXISTS session_logs (id INTEGER PRIMARY KEY, student TEXT, alphabet TEXT, spoken_sound TEXT, whisper_transcription TEXT, target_ipa TEXT, spoken_ipa TEXT, accuracy REAL, passed INTEGER, source TEXT, timestamp TEXT)")
+        try:
+            cursor.execute("ALTER TABLE session_logs ADD COLUMN source TEXT")
+        except sqlite3.OperationalError:
+            pass  # column already exists on a pre-existing local vaila.db
         cursor.execute("SELECT * FROM users WHERE email = 'Admin@vaila.com'")
         if not cursor.fetchone():
             cursor.execute("INSERT INTO users (username, email, password_hash, role, is_approved, is_active, registration_month, last_payment_month, created_at) VALUES (?, ?, ?, 'admin', 1, 1, ?, ?, ?)",
@@ -1082,9 +1086,13 @@ async def evaluate_audio(
     target_alphabet: str = Form(...),
     spoken_text: str = Form(default=""),
     student_id: str = Form(default="Learner"),
+    is_demo: str = Form(default="false"),
+    source: str = Form(default="app"),
 ):
     try:
         clean_student = student_id.strip() if (student_id and student_id.strip()) else "Learner"
+        is_demo_attempt = is_demo.strip().lower() in ("true", "1", "yes")
+        log_source = source.strip().lower() if source and source.strip() else "app"
         target = target_alphabet.strip().lower()
         target_sound = PHONETIC_TARGET_WORDS.get(target, target)
 
@@ -1355,7 +1363,8 @@ async def evaluate_audio(
 
                             target_ipa = text_to_ipa(IPA_REFERENCE_WORDS.get(target, target_sound))
                             spoken_ipa = text_to_ipa(stt_transcription or target.upper())
-                            _log_session(clean_student, target, stt_transcription or target.upper(), stt_transcription, target_ipa, spoken_ipa, gemini_score, gemini_passed)
+                            if not is_demo_attempt:
+                                _log_session(clean_student, target, stt_transcription or target.upper(), stt_transcription, target_ipa, spoken_ipa, gemini_score, gemini_passed, source=log_source)
 
                             return EvaluationResponse(
                                 target_alphabet=target.upper(),
@@ -1471,7 +1480,8 @@ async def evaluate_audio(
         target_ipa = text_to_ipa(IPA_REFERENCE_WORDS.get(target, target_sound))
         spoken_ipa = text_to_ipa(display_text)
 
-        _log_session(clean_student, target, display_text, stt_transcription, target_ipa, spoken_ipa, accuracy, passed)
+        if not is_demo_attempt:
+            _log_session(clean_student, target, display_text, stt_transcription, target_ipa, spoken_ipa, accuracy, passed, source=log_source)
 
         return EvaluationResponse(
             target_alphabet=target.upper(),
@@ -1501,24 +1511,34 @@ async def evaluate_audio(
 
 @app.get("/api/stats")
 def get_stats():
+    # Phonics (English alphabet) stats only — numbers and Urdu have their own
+    # dedicated tabs/endpoints, so both are excluded here to keep this clean.
+    excluded = _NUMBER_ALPHABET_VALUES + _URDU_ALPHABET_VALUES
     if db is not None:
-        total = db.session_logs.count_documents({})
-        passed = db.session_logs.count_documents({"passed": 1})
-        recent = list(db.session_logs.find().sort("_id", -1).limit(50))
+        alpha_filter = {"alphabet": {"$nin": [v.upper() for v in excluded]}}
+        total = db.session_logs.count_documents(alpha_filter)
+        passed = db.session_logs.count_documents({**alpha_filter, "passed": 1})
+        recent = list(db.session_logs.find(alpha_filter).sort("_id", -1).limit(50))
         for r in recent: r.pop("_id", None)
         return {"total_sessions": total, "passed_sessions": passed, "pass_rate_pct": round((passed / max(total, 1)) * 100, 1), "avg_accuracy_pct": 92.5, "recent_logs": recent}
     else:
         conn = sqlite3.connect("vaila.db")
         conn.row_factory = sqlite3.Row
-        total = conn.execute("SELECT COUNT(*) FROM session_logs").fetchone()[0]
-        passed = conn.execute("SELECT COUNT(*) FROM session_logs WHERE passed=1").fetchone()[0]
-        recent = [dict(r) for r in conn.execute("SELECT * FROM session_logs ORDER BY id DESC LIMIT 50").fetchall()]
+        placeholders = ",".join(["?"] * len(excluded))
+        excluded_upper = [v.upper() for v in excluded]
+        total = conn.execute(f"SELECT COUNT(*) FROM session_logs WHERE alphabet NOT IN ({placeholders})", excluded_upper).fetchone()[0]
+        passed = conn.execute(f"SELECT COUNT(*) FROM session_logs WHERE passed=1 AND alphabet NOT IN ({placeholders})", excluded_upper).fetchone()[0]
+        recent = [dict(r) for r in conn.execute(f"SELECT * FROM session_logs WHERE alphabet NOT IN ({placeholders}) ORDER BY id DESC LIMIT 50", excluded_upper).fetchall()]
         conn.close()
         return {"total_sessions": total, "passed_sessions": passed, "pass_rate_pct": round((passed / max(total, 1)) * 100, 1), "avg_accuracy_pct": 92.5, "recent_logs": recent}
 
 
 # Number-only stats for admin Numbers Assessment tab
 _NUMBER_ALPHABET_VALUES = [str(n) for n in [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,30,40,50,60,70,80,90,100,1000]]
+
+# Urdu-only stats for admin Urdu Assessment tab — derived from the Urdu-script
+# keys already defined in PHONETIC_VARIANTS so the word list isn't retyped.
+_URDU_ALPHABET_VALUES = [k for k in PHONETIC_VARIANTS.keys() if any('؀' <= ch <= 'ۿ' for ch in k)]
 
 @app.get("/api/number-stats")
 def get_number_stats():
@@ -1539,14 +1559,34 @@ def get_number_stats():
         conn.close()
         return {"total_sessions": total, "passed_sessions": passed, "pass_rate_pct": round((passed / max(total, 1)) * 100, 1), "avg_accuracy_pct": 92.5, "recent_logs": recent}
 
-def _log_session(student, alphabet, spoken_sound, transcription, target_ipa, spoken_ipa, accuracy, passed):
-    doc = {"student": student, "alphabet": alphabet.upper(), "spoken_sound": spoken_sound, "whisper_transcription": transcription, "target_ipa": target_ipa, "spoken_ipa": spoken_ipa, "accuracy": accuracy, "passed": 1 if passed else 0, "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")}
+@app.get("/api/urdu-stats")
+def get_urdu_stats():
+    urdu_upper = [v.upper() for v in _URDU_ALPHABET_VALUES]
+    if db is not None:
+        urdu_filter = {"alphabet": {"$in": urdu_upper}}
+        total = db.session_logs.count_documents(urdu_filter)
+        passed = db.session_logs.count_documents({**urdu_filter, "passed": 1})
+        recent = list(db.session_logs.find(urdu_filter).sort("_id", -1).limit(50))
+        for r in recent: r.pop("_id", None)
+        return {"total_sessions": total, "passed_sessions": passed, "pass_rate_pct": round((passed / max(total, 1)) * 100, 1), "avg_accuracy_pct": 92.5, "recent_logs": recent}
+    else:
+        conn = sqlite3.connect("vaila.db")
+        conn.row_factory = sqlite3.Row
+        placeholders = ",".join(["?"] * len(urdu_upper))
+        total = conn.execute(f"SELECT COUNT(*) FROM session_logs WHERE alphabet IN ({placeholders})", urdu_upper).fetchone()[0]
+        passed = conn.execute(f"SELECT COUNT(*) FROM session_logs WHERE passed=1 AND alphabet IN ({placeholders})", urdu_upper).fetchone()[0]
+        recent = [dict(r) for r in conn.execute(f"SELECT * FROM session_logs WHERE alphabet IN ({placeholders}) ORDER BY id DESC LIMIT 50", urdu_upper).fetchall()]
+        conn.close()
+        return {"total_sessions": total, "passed_sessions": passed, "pass_rate_pct": round((passed / max(total, 1)) * 100, 1), "avg_accuracy_pct": 92.5, "recent_logs": recent}
+
+def _log_session(student, alphabet, spoken_sound, transcription, target_ipa, spoken_ipa, accuracy, passed, source="app"):
+    doc = {"student": student, "alphabet": alphabet.upper(), "spoken_sound": spoken_sound, "whisper_transcription": transcription, "target_ipa": target_ipa, "spoken_ipa": spoken_ipa, "accuracy": accuracy, "passed": 1 if passed else 0, "source": source, "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")}
     if db is not None:
         db.session_logs.insert_one(doc)
     else:
         conn = sqlite3.connect("vaila.db")
-        conn.execute("INSERT INTO session_logs (student, alphabet, spoken_sound, whisper_transcription, target_ipa, spoken_ipa, accuracy, passed, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                     (student, alphabet.upper(), spoken_sound, transcription, target_ipa, spoken_ipa, accuracy, 1 if passed else 0, time.strftime("%Y-%m-%d %H:%M:%S")))
+        conn.execute("INSERT INTO session_logs (student, alphabet, spoken_sound, whisper_transcription, target_ipa, spoken_ipa, accuracy, passed, source, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                     (student, alphabet.upper(), spoken_sound, transcription, target_ipa, spoken_ipa, accuracy, 1 if passed else 0, source, time.strftime("%Y-%m-%d %H:%M:%S")))
         conn.commit()
         conn.close()
 
