@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getToken } from '@/lib/session';
-import BottomNav from '@/components/BottomNav';
+import Navbar from '@/components/Navbar';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -17,12 +17,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     setReady(true);
   }, [router]);
 
-  if (!ready) return <div className="page-cream" />;
+  if (!ready) return <div className="page-cream" style={{ minHeight: '100vh' }} />;
 
   return (
-    <div style={{ paddingBottom: 70 }}>
+    <div className="page-cream" style={{ minHeight: '100vh' }}>
+      <Navbar />
       {children}
-      <BottomNav />
     </div>
   );
 }

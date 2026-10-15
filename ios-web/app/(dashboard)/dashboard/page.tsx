@@ -1,90 +1,69 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { X } from 'lucide-react';
-import { clearSession } from '@/lib/session';
-import ConfirmDialog from '@/components/ConfirmDialog';
+import { Hash, BookOpen, Languages, ArrowRight } from 'lucide-react';
+import { getUser } from '@/lib/session';
 
 const LESSONS = [
-  { mode: 'numbers', title: 'Numbers 1-1000', color: 'var(--red)' },
-  { mode: 'alphabets', title: 'Phonics A-Z', color: 'var(--navy)' },
-  { mode: 'urdu', title: 'اردو حروف تہجی', color: 'var(--green)' },
+  { mode: 'alphabets', title: 'Phonics A-Z', desc: '26 letters, each with a themed sample word.', icon: BookOpen, color: 'var(--navy)', bg: '#e0eaff' },
+  { mode: 'numbers', title: 'Numbers 1-1000', desc: 'Count from one all the way to a thousand.', icon: Hash, color: 'var(--red)', bg: '#fde2e2' },
+  { mode: 'urdu', title: 'اردو حروف تہجی', desc: '79 Urdu words across five word families.', icon: Languages, color: 'var(--green)', bg: '#dcfce7' },
 ] as const;
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [showExit, setShowExit] = useState(false);
+  const [username, setUsername] = useState('');
 
-  const handleExitConfirmed = () => {
-    clearSession();
-    router.replace('/login');
-  };
+  useEffect(() => {
+    setUsername(getUser()?.username || '');
+  }, []);
 
   return (
-    <main className="page-cream" style={{ padding: '24px 20px 40px', position: 'relative' }}>
-      <button
-        onClick={() => setShowExit(true)}
-        style={{
-          position: 'absolute', top: 20, right: 20, display: 'flex', alignItems: 'center', gap: 6,
-          background: '#fff', border: 'none', borderRadius: 20, padding: '8px 14px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.08)', cursor: 'pointer', color: 'var(--red)', fontWeight: 700, fontSize: 13,
-        }}
-      >
-        <X size={14} /> Exit
-      </button>
-
-      <div style={{ textAlign: 'center', marginTop: 20 }}>
-        <div
-          style={{
-            width: 70, height: 70, borderRadius: '50%', margin: '0 auto',
-            background: 'linear-gradient(135deg, #06b6d4, #4361ee)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}
-        >
-          <span style={{ fontSize: 30, fontWeight: 900, color: '#fff' }}>V</span>
-        </div>
-        <h1 style={{ color: 'var(--navy)', fontSize: 22, fontWeight: 900, marginTop: 12 }}>
-          VAILA&apos;S Speech Trainer
-        </h1>
-        <h2 style={{ color: 'var(--red)', fontSize: 16, fontWeight: 800, marginTop: 4 }}>
-          CHOOSE A LESSON
-        </h2>
-        <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>
-          ★ Inclusive Learning For Every Child ★
-        </p>
-      </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 28, maxWidth: 420, marginInline: 'auto' }}>
-        {LESSONS.map((lesson) => (
-          <button
-            key={lesson.mode}
-            onClick={() => router.push(`/practice/${lesson.mode}`)}
-            className="card"
-            style={{
-              border: 'none', textAlign: 'left', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            }}
-          >
-            <span style={{ color: lesson.color, fontSize: 19, fontWeight: 800 }}>{lesson.title}</span>
-            <span style={{ color: lesson.color, fontSize: 22 }}>→</span>
-          </button>
-        ))}
-      </div>
-
-      <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 12, marginTop: 36 }}>
-        © VAILA&apos;S School for Hearing Impaired Students
+    <main style={{ maxWidth: 1000, margin: '0 auto', padding: '48px 24px 72px' }}>
+      <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--navy)', margin: 0 }}>
+        {username ? `Welcome back, ${username} 👋` : 'Welcome back 👋'}
+      </h1>
+      <p style={{ color: 'var(--text-muted)', marginTop: 8 }}>
+        Pick a module to continue practicing. Your progress is saved automatically.
       </p>
 
-      {showExit && (
-        <ConfirmDialog
-          title="Exit this lesson and choose another?"
-          message="You'll be logged out and returned to the login screen."
-          confirmLabel="OK"
-          onConfirm={handleExitConfirmed}
-          onCancel={() => setShowExit(false)}
-        />
-      )}
+      <div
+        style={{
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gap: 22, marginTop: 36,
+        }}
+      >
+        {LESSONS.map((lesson) => {
+          const Icon = lesson.icon;
+          return (
+            <button
+              key={lesson.mode}
+              onClick={() => router.push(`/practice/${lesson.mode}`)}
+              className="card"
+              style={{ border: 'none', textAlign: 'left', cursor: 'pointer' }}
+            >
+              <div
+                style={{
+                  width: 52, height: 52, borderRadius: 14, background: lesson.bg, color: lesson.color,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}
+              >
+                <Icon size={24} />
+              </div>
+              <h2 style={{ fontSize: 19, fontWeight: 800, color: lesson.color, marginTop: 16 }}>{lesson.title}</h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>{lesson.desc}</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 14, color: lesson.color, fontWeight: 700, fontSize: 14 }}>
+                Start practicing <ArrowRight size={15} />
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 12, marginTop: 56 }}>
+        © VAILA&apos;S School for Hearing Impaired Students
+      </p>
     </main>
   );
 }

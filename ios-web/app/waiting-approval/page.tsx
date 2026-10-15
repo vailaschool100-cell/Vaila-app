@@ -2,8 +2,9 @@
 
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Clock } from 'lucide-react';
 import { checkStatus } from '@/lib/api/auth';
+import Navbar from '@/components/Navbar';
 
 function WaitingApprovalInner() {
   const router = useRouter();
@@ -31,57 +32,62 @@ function WaitingApprovalInner() {
   }, [username]);
 
   return (
-    <main
-      className="page-dark"
-      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, minHeight: '100vh', textAlign: 'center' }}
-    >
-      {!isApproved ? (
-        <>
-          <div
-            style={{
-              width: 90, height: 90, borderRadius: '50%',
-              background: 'rgba(56,189,248,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}
-          >
-            <span className="spinner-dark" />
+    <main className="page-cream" style={{ minHeight: '100vh' }}>
+      <Navbar />
+      <div
+        style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          padding: 24, minHeight: 'calc(100vh - 65px)', textAlign: 'center',
+        }}
+      >
+        {!isApproved ? (
+          <div className="card" style={{ maxWidth: 420 }}>
+            <div
+              style={{
+                width: 80, height: 80, borderRadius: '50%', margin: '0 auto',
+                background: '#e0f2fe', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+            >
+              <Clock size={32} color="var(--navy)" />
+            </div>
+            <h1 style={{ color: 'var(--navy)', fontSize: 22, fontWeight: 800, marginTop: 20 }}>
+              Waiting for Confirmation...
+            </h1>
+            <p style={{ color: 'var(--text-muted)', marginTop: 8 }}>
+              An admin is reviewing your payment proof. This page updates automatically once
+              you&apos;re approved.
+            </p>
+            <button
+              onClick={() => router.push('/login')}
+              style={{
+                marginTop: 24, padding: '12px 24px', borderRadius: 12,
+                border: '1px solid var(--navy)', background: 'transparent', color: 'var(--navy)',
+                fontWeight: 700, cursor: 'pointer',
+              }}
+            >
+              Back to Login
+            </button>
           </div>
-          <h1 style={{ color: 'var(--sky)', fontSize: 22, fontWeight: 800, marginTop: 24 }}>
-            Waiting for Confirmation...
-          </h1>
-          <p style={{ color: 'var(--text-dim)', maxWidth: 360, marginTop: 8 }}>
-            An admin is reviewing your payment proof. This page will update automatically once
-            you&apos;re approved.
-          </p>
-          <button
-            onClick={() => router.push('/login')}
-            style={{
-              marginTop: 32, padding: '12px 24px', borderRadius: 12,
-              border: '1px solid var(--sky)', background: 'transparent', color: 'var(--sky)',
-              fontWeight: 700, cursor: 'pointer',
-            }}
-          >
-            Back to Login
-          </button>
-        </>
-      ) : (
-        <div className="card-dark" style={{ maxWidth: 360 }}>
-          <CheckCircle2 size={48} color="#34d399" />
-          <h2 style={{ color: '#34d399', marginTop: 12 }}>Account Approved!</h2>
-          <p style={{ color: 'var(--text-dim)', fontSize: 14 }}>
-            Your account has been approved. You can now log in.
-          </p>
-          <button onClick={() => router.push('/login')} className="btn-dark" style={{ marginTop: 16 }}>
-            Login Now →
-          </button>
-        </div>
-      )}
+        ) : (
+          <div className="card" style={{ maxWidth: 380, border: '2px solid var(--green-accent)' }}>
+            <CheckCircle2 size={48} color="#10b981" />
+            <h2 style={{ color: '#10b981', marginTop: 12 }}>Account Approved!</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>
+              Your account has been approved. You can now log in.
+            </p>
+            <button onClick={() => router.push('/login')} className="btn-primary" style={{ marginTop: 16 }}>
+              Login Now →
+            </button>
+          </div>
+        )}
+      </div>
     </main>
   );
 }
 
 export default function WaitingApprovalPage() {
   return (
-    <Suspense fallback={<main className="page-dark" />}>
+    <Suspense fallback={<main className="page-cream" style={{ minHeight: '100vh' }} />}>
       <WaitingApprovalInner />
     </Suspense>
   );

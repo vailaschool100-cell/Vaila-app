@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Camera, LogOut } from 'lucide-react';
+import { Camera, LogOut, Save } from 'lucide-react';
 import { updateProfile } from '@/lib/api/auth';
 import { getUser, saveSession, getToken, clearSession } from '@/lib/session';
 
@@ -51,63 +51,76 @@ export default function ProfilePage() {
   const initial = (currentUsername || '?').charAt(0).toUpperCase();
 
   return (
-    <main className="page-dark" style={{ padding: '32px 24px', maxWidth: 420, margin: '0 auto' }}>
-      <h1 style={{ color: '#fff', fontSize: 22, fontWeight: 800 }}>My Profile</h1>
+    <main style={{ maxWidth: 760, margin: '0 auto', padding: '48px 24px 72px' }}>
+      <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--navy)', margin: 0 }}>My Profile</h1>
+      <p style={{ color: 'var(--text-muted)', marginTop: 6 }}>Manage your account details and avatar.</p>
 
-      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 20 }}>
-        <div
-          onClick={() => fileRef.current?.click()}
-          style={{
-            width: 110, height: 110, borderRadius: '50%', background: 'var(--dark-card)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', cursor: 'pointer',
-            border: '2px solid var(--sky)',
-          }}
-        >
-          <span style={{ fontSize: 40, fontWeight: 800, color: '#fff' }}>{initial}</span>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(180px, 220px) 1fr', gap: 28, marginTop: 32 }} className="profile-grid">
+        <div className="card" style={{ textAlign: 'center' }}>
           <div
+            onClick={() => fileRef.current?.click()}
             style={{
-              position: 'absolute', bottom: 0, right: 0, background: 'var(--indigo)',
-              borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: 96, height: 96, borderRadius: '50%', background: 'var(--cream-bg)', margin: '0 auto',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', cursor: 'pointer',
+              border: '3px solid var(--navy)',
             }}
           >
-            <Camera size={16} color="#fff" />
+            <span style={{ fontSize: 34, fontWeight: 800, color: 'var(--navy)' }}>{initial}</span>
+            <div
+              style={{
+                position: 'absolute', bottom: 0, right: 0, background: 'var(--navy)',
+                borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+            >
+              <Camera size={14} color="#fff" />
+            </div>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={(e) => setAvatar(e.target.files?.[0] || null)}
+            />
           </div>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            style={{ display: 'none' }}
-            onChange={(e) => setAvatar(e.target.files?.[0] || null)}
-          />
+          <p style={{ fontWeight: 700, color: 'var(--navy)', marginTop: 14 }}>{currentUsername || 'Learner'}</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: 12 }}>Tap avatar to change photo</p>
+
+          <button
+            onClick={handleLogout}
+            style={{
+              width: '100%', marginTop: 20, padding: 12, borderRadius: 12,
+              border: '1px solid var(--red)', background: 'transparent', color: 'var(--red)',
+              fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 13,
+            }}
+          >
+            <LogOut size={15} /> Logout Account
+          </button>
+        </div>
+
+        <div className="card">
+          {message && (
+            <div style={{ background: '#dcfce7', color: '#15803d', padding: '10px 16px', borderRadius: 10, fontSize: 13, marginBottom: 16 }}>
+              {message}
+            </div>
+          )}
+
+          <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)' }}>Username</label>
+          <input className="input-cream" style={{ marginTop: 6, marginBottom: 16 }} value={username} onChange={(e) => setUsername(e.target.value)} />
+
+          <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)' }}>Email</label>
+          <input className="input-cream" style={{ marginTop: 6 }} type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+
+          <button onClick={handleSave} disabled={isSaving} className="btn-primary" style={{ marginTop: 24, width: 'auto', padding: '13px 26px' }}>
+            {isSaving ? <span className="spinner" /> : (<><Save size={16} /> Save Changes</>)}
+          </button>
         </div>
       </div>
 
-      {message && (
-        <p style={{ textAlign: 'center', color: '#34d399', fontSize: 13, marginTop: 12 }}>{message}</p>
-      )}
-
-      <div style={{ marginTop: 28 }}>
-        <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-dim)' }}>Username</label>
-        <input className="input-dark" style={{ marginTop: 6, marginBottom: 16 }} value={username} onChange={(e) => setUsername(e.target.value)} />
-
-        <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-dim)' }}>Email</label>
-        <input className="input-dark" style={{ marginTop: 6 }} type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-
-        <button onClick={handleSave} disabled={isSaving} className="btn-dark" style={{ marginTop: 24 }}>
-          {isSaving ? <span className="spinner" /> : 'Save Profile Changes'}
-        </button>
-
-        <button
-          onClick={handleLogout}
-          style={{
-            width: '100%', marginTop: 14, padding: 14, borderRadius: 14,
-            border: '1px solid var(--rose)', background: 'transparent', color: '#fda4af',
-            fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          }}
-        >
-          <LogOut size={18} /> Logout Account
-        </button>
-      </div>
+      <style>{`
+        @media (max-width: 640px) {
+          .profile-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </main>
   );
 }
