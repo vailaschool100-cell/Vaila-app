@@ -37,6 +37,7 @@ interface SessionLog {
   whisper_transcription?: string;
   accuracy: number;
   passed: boolean | number;
+  source?: string;
   timestamp: string;
 }
 
@@ -60,8 +61,16 @@ export default function AdminDashboard() {
     recent_logs: [] as SessionLog[]
   });
 
+  const [urduStats, setUrduStats] = useState({
+    total_sessions: 0,
+    passed_sessions: 0,
+    pass_rate_pct: 0,
+    avg_accuracy_pct: 0,
+    recent_logs: [] as SessionLog[]
+  });
+
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'users' | 'analytics' | 'numbers'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'analytics' | 'numbers' | 'urdu'>('users');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -96,6 +105,13 @@ export default function AdminDashboard() {
       if (numStatsRes.ok) {
         const data = await numStatsRes.json();
         setNumberStats(data);
+      }
+
+      // 4. Fetch Urdu Practice Stats
+      const urduStatsRes = await fetch(`${API_URL}/api/urdu-stats`);
+      if (urduStatsRes.ok) {
+        const data = await urduStatsRes.json();
+        setUrduStats(data);
       }
     } catch (e) {
       console.log('Error fetching admin data:', e);
@@ -249,6 +265,21 @@ export default function AdminDashboard() {
           }}
         >
           🔢 Numbers Assessment ({numberStats.total_sessions} Sessions)
+        </button>
+
+        <button
+          onClick={() => setActiveTab('urdu')}
+          style={{
+            padding: '12px 24px',
+            borderRadius: '12px',
+            border: 'none',
+            backgroundColor: activeTab === 'urdu' ? '#a855f7' : '#1e293b',
+            color: '#fff',
+            fontWeight: 700,
+            cursor: 'pointer'
+          }}
+        >
+          🕌 Urdu Assessment ({urduStats.total_sessions} Sessions)
         </button>
       </div>
 
@@ -411,6 +442,7 @@ export default function AdminDashboard() {
                   <th style={{ padding: '12px' }}>Spoken Sound</th>
                   <th style={{ padding: '12px' }}>Accuracy %</th>
                   <th style={{ padding: '12px' }}>Evaluation Result</th>
+                  <th style={{ padding: '12px' }}>Platform</th>
                   <th style={{ padding: '12px' }}>Date & Time</th>
                 </tr>
               </thead>
@@ -465,6 +497,18 @@ export default function AdminDashboard() {
                             {isPassed ? 'Passed' : 'Needs Practice'}
                           </span>
                         </td>
+                        <td style={{ padding: '14px 12px' }}>
+                          <span style={{
+                            padding: '4px 10px',
+                            borderRadius: '8px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            backgroundColor: log.source === 'web' ? 'rgba(6, 182, 212, 0.15)' : 'rgba(168, 85, 247, 0.15)',
+                            color: log.source === 'web' ? '#38bdf8' : '#c084fc'
+                          }}>
+                            {log.source === 'web' ? '🌐 Web' : '📱 App'}
+                          </span>
+                        </td>
                         <td style={{ padding: '14px 12px', color: '#94a3b8', fontSize: '13px' }}>
                           {log.timestamp || '-'}
                         </td>
@@ -473,7 +517,7 @@ export default function AdminDashboard() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={6} style={{ textAlign: 'center', padding: '32px', color: '#64748b' }}>
+                    <td colSpan={7} style={{ textAlign: 'center', padding: '32px', color: '#64748b' }}>
                       No learner practice records logged yet.
                     </td>
                   </tr>
@@ -482,7 +526,7 @@ export default function AdminDashboard() {
             </table>
           </div>
         </div>
-      ) : (
+      ) : activeTab === 'numbers' ? (
         /* Numbers Assessment View */
         <div style={{ backgroundColor: '#1e293b', borderRadius: '20px', padding: '24px', border: '1px solid rgba(255,255,255,0.05)' }}>
           <div className="stats-grid" style={{ marginBottom: '24px' }}>
@@ -513,6 +557,7 @@ export default function AdminDashboard() {
                   <th style={{ padding: '12px' }}>Spoken Sound</th>
                   <th style={{ padding: '12px' }}>Accuracy %</th>
                   <th style={{ padding: '12px' }}>Result</th>
+                  <th style={{ padding: '12px' }}>Platform</th>
                   <th style={{ padding: '12px' }}>Date & Time</th>
                 </tr>
               </thead>
@@ -567,6 +612,18 @@ export default function AdminDashboard() {
                             {isPassed ? 'Passed' : 'Needs Practice'}
                           </span>
                         </td>
+                        <td style={{ padding: '14px 12px' }}>
+                          <span style={{
+                            padding: '4px 10px',
+                            borderRadius: '8px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            backgroundColor: log.source === 'web' ? 'rgba(6, 182, 212, 0.15)' : 'rgba(168, 85, 247, 0.15)',
+                            color: log.source === 'web' ? '#38bdf8' : '#c084fc'
+                          }}>
+                            {log.source === 'web' ? '🌐 Web' : '📱 App'}
+                          </span>
+                        </td>
                         <td style={{ padding: '14px 12px', color: '#94a3b8', fontSize: '13px' }}>
                           {log.timestamp || '-'}
                         </td>
@@ -575,8 +632,123 @@ export default function AdminDashboard() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={6} style={{ textAlign: 'center', padding: '32px', color: '#64748b' }}>
+                    <td colSpan={7} style={{ textAlign: 'center', padding: '32px', color: '#64748b' }}>
                       No number practice sessions recorded yet.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : (
+        /* Urdu Assessment View */
+        <div style={{ backgroundColor: '#1e293b', borderRadius: '20px', padding: '24px', border: '1px solid rgba(255,255,255,0.05)' }}>
+          <div className="stats-grid" style={{ marginBottom: '24px' }}>
+            <div className="stat-card">
+              <div className="stat-header"><span>Urdu Attempts</span><Activity size={18} color="#a855f7" /></div>
+              <div className="stat-value" style={{ color: '#a855f7' }}>{urduStats.total_sessions}</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-header"><span>Urdu Passed</span><CheckCircle2 size={18} color="#34d399" /></div>
+              <div className="stat-value" style={{ color: '#34d399' }}>{urduStats.passed_sessions}</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-header"><span>Pass Rate</span><Award size={18} color="#c084fc" /></div>
+              <div className="stat-value" style={{ color: '#c084fc' }}>{urduStats.pass_rate_pct}%</div>
+            </div>
+          </div>
+
+          <h2 style={{ color: '#fff', fontSize: '18px', marginBottom: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            🕌 Urdu Speaking Practice History
+          </h2>
+
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', color: '#cbd5e1', fontSize: '14px' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid #334155', textAlign: 'left' }}>
+                  <th style={{ padding: '12px' }}>Learner Name</th>
+                  <th style={{ padding: '12px' }}>Urdu Word</th>
+                  <th style={{ padding: '12px' }}>Spoken Sound</th>
+                  <th style={{ padding: '12px' }}>Accuracy %</th>
+                  <th style={{ padding: '12px' }}>Result</th>
+                  <th style={{ padding: '12px' }}>Platform</th>
+                  <th style={{ padding: '12px' }}>Date & Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {urduStats.recent_logs && urduStats.recent_logs.length > 0 ? (
+                  urduStats.recent_logs.map((log, index) => {
+                    const isPassed = Boolean(log.passed === true || log.passed === 1);
+                    return (
+                      <tr key={log.id || index} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                        <td style={{ padding: '14px 12px' }}>
+                          <div style={{ fontWeight: 700, color: '#60a5fa', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Users size={16} /> {log.student || 'Learner'}
+                          </div>
+                        </td>
+                        <td style={{ padding: '14px 12px' }}>
+                          <span style={{
+                            padding: '4px 10px',
+                            borderRadius: '8px',
+                            backgroundColor: 'rgba(168, 85, 247, 0.2)',
+                            color: '#c084fc',
+                            fontWeight: 800,
+                            fontSize: '14px',
+                            border: '1px solid rgba(168, 85, 247, 0.4)'
+                          }}>
+                            {log.alphabet || '-'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px 12px', fontStyle: 'italic', color: '#e2e8f0' }}>
+                          "{log.spoken_sound || log.whisper_transcription || '-'}"
+                        </td>
+                        <td style={{ padding: '14px 12px', fontWeight: 700 }}>
+                          <span style={{
+                            color: log.accuracy >= 90 ? '#34d399' : (log.accuracy >= 60 ? '#fbbf24' : '#f87171')
+                          }}>
+                            {log.accuracy}%
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px 12px' }}>
+                          <span style={{
+                            padding: '4px 12px',
+                            borderRadius: '20px',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            backgroundColor: isPassed ? 'rgba(16,185,129,0.2)' : 'rgba(244,63,94,0.2)',
+                            color: isPassed ? '#34d399' : '#f87171',
+                            border: `1px solid ${isPassed ? '#10b981' : '#f43f5e'}`,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}>
+                            {isPassed ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}
+                            {isPassed ? 'Passed' : 'Needs Practice'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px 12px' }}>
+                          <span style={{
+                            padding: '4px 10px',
+                            borderRadius: '8px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            backgroundColor: log.source === 'web' ? 'rgba(6, 182, 212, 0.15)' : 'rgba(168, 85, 247, 0.15)',
+                            color: log.source === 'web' ? '#38bdf8' : '#c084fc'
+                          }}>
+                            {log.source === 'web' ? '🌐 Web' : '📱 App'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px 12px', color: '#94a3b8', fontSize: '13px' }}>
+                          {log.timestamp || '-'}
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={7} style={{ textAlign: 'center', padding: '32px', color: '#64748b' }}>
+                      No Urdu practice sessions recorded yet.
                     </td>
                   </tr>
                 )}
