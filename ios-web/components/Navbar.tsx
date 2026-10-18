@@ -73,7 +73,7 @@ export default function Navbar() {
           <Link href={loggedIn ? '/dashboard' : '/'} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo.jpg" alt="Vaila" style={{ height: 44, width: 'auto', borderRadius: 8 }} />
-            <span style={{ fontSize: 17, fontWeight: 800, color: 'var(--navy)' }}>Vaila</span>
+            <span style={{ fontSize: 17, fontWeight: 800, color: 'var(--navy)' }}>Vaila Teaching Center</span>
           </Link>
 
           <nav style={{ display: 'flex', alignItems: 'center', gap: 20 }} className="navbar-desktop-links">

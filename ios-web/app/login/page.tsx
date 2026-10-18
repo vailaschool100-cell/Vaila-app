@@ -53,9 +53,9 @@ export default function LoginPage() {
 
   return (
     <AuthLayout
-      eyebrow="Welcome back"
-      title="Pick up right where you left off."
-      subtitle="Sign in to continue practicing across English letters, numbers, and Urdu — your progress is saved automatically."
+      eyebrow="Welcome to Vaila"
+      title="Your child's voice, growing stronger every day."
+      subtitle="Sign in to track progress across English letters, numbers, and Urdu — with real-time AI pronunciation feedback."
     >
       <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--navy)', margin: 0 }}>Sign In</h1>
       <p style={{ color: 'var(--text-muted)', fontSize: 14, marginTop: 6 }}>
