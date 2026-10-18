@@ -32,15 +32,25 @@ export function loadVoices(): Promise<SpeechSynthesisVoice[]> {
 }
 
 function pickVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | undefined {
-  // Always read the romanized text with the same English voice regardless of
-  // mode — matching the app exactly. Urdu items speak their romanized form
-  // (e.g. "Baal"), never the raw script, and picking an actual Urdu-language
-  // voice to read that Latin text produces different, worse pronunciation
-  // than an English voice reading it — confirmed against the app's behavior.
-  const female = voices.find((v) =>
-    FEMALE_VOICE_HINTS.some((hint) => v.name.toLowerCase().includes(hint))
+  // Always read the romanized text with the same en-US English voice
+  // regardless of mode — matching the app exactly, which always calls
+  // setLanguage('en-US') for every mode including Urdu (items speak their
+  // romanized form, e.g. "Baal", never the raw script). A plain "starts
+  // with en" fallback can land on an en-GB/en-IN/en-AU voice depending on
+  // what's installed, which sounds noticeably different from the app —
+  // so en-US is preferred strictly, with name-matching only used to break
+  // ties among en-US voices.
+  const isEnUS = (v: SpeechSynthesisVoice) => v.lang?.toLowerCase() === 'en-us';
+  const isEn = (v: SpeechSynthesisVoice) => v.lang?.toLowerCase().startsWith('en');
+  const isFemale = (v: SpeechSynthesisVoice) =>
+    FEMALE_VOICE_HINTS.some((hint) => v.name.toLowerCase().includes(hint));
+
+  return (
+    voices.find((v) => isEnUS(v) && isFemale(v)) ||
+    voices.find(isEnUS) ||
+    voices.find((v) => isEn(v) && isFemale(v)) ||
+    voices.find(isEn)
   );
-  return female || voices.find((v) => v.lang?.toLowerCase().startsWith('en'));
 }
 
 export interface SpeakOptions {
@@ -73,6 +83,7 @@ function speakOnce(text: string, voice: SpeechSynthesisVoice | undefined, rate: 
       /* no-op */
     }
     const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
     if (voice) utterance.voice = voice;
     utterance.rate = rate;
     utterance.pitch = pitch;
