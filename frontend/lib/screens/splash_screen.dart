@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'login_screen.dart';
+import 'demo_screen.dart';
 import 'main_navigation_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -51,7 +51,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       );
     } else {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        MaterialPageRoute(builder: (_) => const DemoScreen()),
       );
     }
   }
@@ -65,7 +65,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFFFBF8F1),
       body: Center(
         child: AnimatedBuilder(
           animation: _controller,
@@ -110,7 +110,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                       style: GoogleFonts.outfit(
                         fontSize: 32,
                         fontWeight: FontWeight.w900,
-                        color: const Color(0xFF38BDF8),
+                        color: const Color(0xFF1E3A8A),
                         letterSpacing: 1.0,
                       ),
                     ),
@@ -120,7 +120,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                       style: GoogleFonts.outfit(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF94A3B8),
+                        color: Colors.grey.shade600,
                       ),
                     ),
                   ],

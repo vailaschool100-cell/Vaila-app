@@ -8,15 +8,8 @@ export default function Footer() {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div
-            style={{
-              width: 28, height: 28, borderRadius: 8,
-              background: 'linear-gradient(135deg, #06b6d4, #4361ee)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}
-          >
-            <span style={{ fontSize: 13, fontWeight: 900, color: '#fff' }}>V</span>
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.jpg" alt="Vaila" style={{ height: 32, width: 'auto', borderRadius: 6 }} />
           <span style={{ fontWeight: 700, color: 'var(--navy)', fontSize: 14 }}>Vaila</span>
         </div>
         <p style={{ color: 'var(--text-muted)', fontSize: 13, margin: 0 }}>

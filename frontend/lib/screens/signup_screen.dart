@@ -56,12 +56,12 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFFFBF8F1),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+          icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF1E3A8A)),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -75,15 +75,23 @@ class _SignupScreenState extends State<SignupScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  Center(
+                    child: Image.asset(
+                      'assets/logo.jpg',
+                      height: 100,
+                      errorBuilder: (ctx, err, stack) => const Icon(Icons.hearing, color: Color(0xFF1E3A8A), size: 70),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   Text(
                     "Create Account",
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.w900, color: const Color(0xFF38BDF8)),
+                    style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.w900, color: const Color(0xFF1E3A8A)),
                   ),
                   Text(
                     "Join Vaila Phonics Learning Journey",
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.outfit(fontSize: 14, color: const Color(0xFF94A3B8)),
+                    style: GoogleFonts.outfit(fontSize: 14, color: Colors.grey.shade600),
                   ),
                   const SizedBox(height: 28),
 
@@ -102,14 +110,14 @@ class _SignupScreenState extends State<SignupScreen> {
                   // Username
                   TextField(
                     controller: _usernameController,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: Colors.black87),
                     decoration: InputDecoration(
                       labelText: "Username",
                       labelStyle: const TextStyle(color: Color(0xFF94A3B8)),
                       prefixIcon: const Icon(Icons.person_outline_rounded, color: Color(0xFF38BDF8)),
                       filled: true,
-                      fillColor: const Color(0xFF1E293B),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.black12)),
                     ),
                   ),
                   const SizedBox(height: 14),
@@ -118,14 +126,14 @@ class _SignupScreenState extends State<SignupScreen> {
                   TextField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: Colors.black87),
                     decoration: InputDecoration(
                       labelText: "Email Address",
                       labelStyle: const TextStyle(color: Color(0xFF94A3B8)),
                       prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF38BDF8)),
                       filled: true,
-                      fillColor: const Color(0xFF1E293B),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.black12)),
                     ),
                   ),
                   const SizedBox(height: 14),
@@ -134,14 +142,14 @@ class _SignupScreenState extends State<SignupScreen> {
                   TextField(
                     controller: _passwordController,
                     obscureText: true,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: Colors.black87),
                     decoration: InputDecoration(
                       labelText: "Password",
                       labelStyle: const TextStyle(color: Color(0xFF94A3B8)),
                       prefixIcon: const Icon(Icons.lock_outline_rounded, color: Color(0xFF38BDF8)),
                       filled: true,
-                      fillColor: const Color(0xFF1E293B),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.black12)),
                     ),
                   ),
                   const SizedBox(height: 14),
@@ -150,14 +158,14 @@ class _SignupScreenState extends State<SignupScreen> {
                   TextField(
                     controller: _confirmPasswordController,
                     obscureText: true,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: Colors.black87),
                     decoration: InputDecoration(
                       labelText: "Confirm Password",
                       labelStyle: const TextStyle(color: Color(0xFF94A3B8)),
                       prefixIcon: const Icon(Icons.lock_reset_rounded, color: Color(0xFF38BDF8)),
                       filled: true,
-                      fillColor: const Color(0xFF1E293B),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.black12)),
                     ),
                   ),
 
@@ -167,7 +175,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     height: 56,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF4361EE),
+                        backgroundColor: const Color(0xFF1E3A8A),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                         elevation: 4,
                       ),

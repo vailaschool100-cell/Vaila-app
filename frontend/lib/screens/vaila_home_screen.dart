@@ -13,6 +13,7 @@ import 'package:vibration/vibration.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login_screen.dart';
+import 'signup_screen.dart';
 
 class AlphabetItem {
   final String id;
@@ -34,7 +35,14 @@ class AlphabetItem {
 
 class VailaHomeScreen extends StatefulWidget {
   final String mode;
-  const VailaHomeScreen({super.key, this.mode = 'letters'});
+  final bool isDemo;
+  final List<AlphabetItem>? demoItems;
+  const VailaHomeScreen({
+    super.key,
+    this.mode = 'letters',
+    this.isDemo = false,
+    this.demoItems,
+  });
 
   @override
   State<VailaHomeScreen> createState() => _VailaHomeScreenState();
@@ -92,6 +100,153 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
         word: 'Elephant',
         speechText: 'E',
         tip: 'Say Letter E!'),
+    AlphabetItem(
+        id: 'f',
+        letter: 'f',
+        sound: 'F',
+        word: 'Fish',
+        speechText: 'F',
+        tip: 'Say Letter F!'),
+    AlphabetItem(
+        id: 'g',
+        letter: 'g',
+        sound: 'G',
+        word: 'Goat',
+        speechText: 'G',
+        tip: 'Say Letter G!'),
+    AlphabetItem(
+        id: 'h',
+        letter: 'h',
+        sound: 'H',
+        word: 'Hat',
+        speechText: 'H',
+        tip: 'Say Letter H!'),
+    AlphabetItem(
+        id: 'i',
+        letter: 'i',
+        sound: 'I',
+        word: 'Igloo',
+        speechText: 'I',
+        tip: 'Say Letter I!'),
+    AlphabetItem(
+        id: 'j',
+        letter: 'j',
+        sound: 'J',
+        word: 'Jug',
+        speechText: 'J',
+        tip: 'Say Letter J!'),
+    AlphabetItem(
+        id: 'k',
+        letter: 'k',
+        sound: 'K',
+        word: 'Kite',
+        speechText: 'K',
+        tip: 'Say Letter K!'),
+    AlphabetItem(
+        id: 'l',
+        letter: 'l',
+        sound: 'L',
+        word: 'Lion',
+        speechText: 'L',
+        tip: 'Say Letter L!'),
+    AlphabetItem(
+        id: 'm',
+        letter: 'm',
+        sound: 'M',
+        word: 'Monkey',
+        speechText: 'M',
+        tip: 'Say Letter M!'),
+    AlphabetItem(
+        id: 'n',
+        letter: 'n',
+        sound: 'N',
+        word: 'Nest',
+        speechText: 'N',
+        tip: 'Say Letter N!'),
+    AlphabetItem(
+        id: 'o',
+        letter: 'o',
+        sound: 'O',
+        word: 'Orange',
+        speechText: 'O',
+        tip: 'Say Letter O!'),
+    AlphabetItem(
+        id: 'p',
+        letter: 'p',
+        sound: 'P',
+        word: 'Parrot',
+        speechText: 'P',
+        tip: 'Say Letter P!'),
+    AlphabetItem(
+        id: 'q',
+        letter: 'q',
+        sound: 'Q',
+        word: 'Queen',
+        speechText: 'Q',
+        tip: 'Say Letter Q!'),
+    AlphabetItem(
+        id: 'r',
+        letter: 'r',
+        sound: 'R',
+        word: 'Rabbit',
+        speechText: 'R',
+        tip: 'Say Letter R!'),
+    AlphabetItem(
+        id: 's',
+        letter: 's',
+        sound: 'S',
+        word: 'Snake',
+        speechText: 'S',
+        tip: 'Say Letter S!'),
+    AlphabetItem(
+        id: 't',
+        letter: 't',
+        sound: 'T',
+        word: 'Tiger',
+        speechText: 'T',
+        tip: 'Say Letter T!'),
+    AlphabetItem(
+        id: 'u',
+        letter: 'u',
+        sound: 'U',
+        word: 'Umbrella',
+        speechText: 'U',
+        tip: 'Say Letter U!'),
+    AlphabetItem(
+        id: 'v',
+        letter: 'v',
+        sound: 'V',
+        word: 'Van',
+        speechText: 'V',
+        tip: 'Say Letter V!'),
+    AlphabetItem(
+        id: 'w',
+        letter: 'w',
+        sound: 'W',
+        word: 'Whale',
+        speechText: 'W',
+        tip: 'Say Letter W!'),
+    AlphabetItem(
+        id: 'x',
+        letter: 'x',
+        sound: 'X',
+        word: 'Xylophone',
+        speechText: 'X',
+        tip: 'Say Letter X!'),
+    AlphabetItem(
+        id: 'y',
+        letter: 'y',
+        sound: 'Y',
+        word: 'Yak',
+        speechText: 'Y',
+        tip: 'Say Letter Y!'),
+    AlphabetItem(
+        id: 'z',
+        letter: 'z',
+        sound: 'Z',
+        word: 'Zebra',
+        speechText: 'Z',
+        tip: 'Say Letter Z!'),
   ];
 
   final List<AlphabetItem> _numbers = [
@@ -126,8 +281,106 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
     AlphabetItem(id: '1000', letter: '1000', sound: 'One Thousand', word: 'Thousand', speechText: 'One Thousand', tip: 'Say One Thousand!'),
   ];
 
+  // Urdu word family, series 1: the "-aal" rhyme series (30 words).
+  final List<AlphabetItem> _urduAlphabets = [
+    AlphabetItem(id: 'ال', letter: 'ال', sound: 'Al', word: 'ال', speechText: 'ال', tip: 'Say Al!'),
+    AlphabetItem(id: 'آل', letter: 'آل', sound: 'Aal', word: 'آل', speechText: 'آل', tip: 'Say Aal!'),
+    AlphabetItem(id: 'بال', letter: 'بال', sound: 'Baal', word: 'بال', speechText: 'بال', tip: 'Say Baal!'),
+    AlphabetItem(id: 'پال', letter: 'پال', sound: 'Paal', word: 'پال', speechText: 'پال', tip: 'Say Paal!'),
+    AlphabetItem(id: 'تال', letter: 'تال', sound: 'Taal', word: 'تال', speechText: 'تال', tip: 'Say Taal!'),
+    AlphabetItem(id: 'ٹال', letter: 'ٹال', sound: 'Ṭaal', word: 'ٹال', speechText: 'ٹال', tip: 'Say Ṭaal!'),
+    AlphabetItem(id: 'ثال', letter: 'ثال', sound: 'Saal', word: 'ثال', speechText: 'ثال', tip: 'Say Saal!'),
+    AlphabetItem(id: 'جال', letter: 'جال', sound: 'Jaal', word: 'جال', speechText: 'جال', tip: 'Say Jaal!'),
+    AlphabetItem(id: 'چال', letter: 'چال', sound: 'Chaal', word: 'چال', speechText: 'چال', tip: 'Say Chaal!'),
+    AlphabetItem(id: 'حال', letter: 'حال', sound: 'Haal', word: 'حال', speechText: 'حال', tip: 'Say Haal!'),
+    AlphabetItem(id: 'خال', letter: 'خال', sound: 'Khaal', word: 'خال', speechText: 'خال', tip: 'Say Khaal!'),
+    AlphabetItem(id: 'دال', letter: 'دال', sound: 'Daal', word: 'دال', speechText: 'دال', tip: 'Say Daal!'),
+    AlphabetItem(id: 'ڈال', letter: 'ڈال', sound: 'Ḍaal', word: 'ڈال', speechText: 'ڈال', tip: 'Say Ḍaal!'),
+    AlphabetItem(id: 'ذال', letter: 'ذال', sound: 'Zaal', word: 'ذال', speechText: 'ذال', tip: 'Say Zaal!'),
+    AlphabetItem(id: 'رال', letter: 'رال', sound: 'Raal', word: 'رال', speechText: 'رال', tip: 'Say Raal!'),
+    AlphabetItem(id: 'ڑال', letter: 'ڑال', sound: 'Ṛaal', word: 'ڑال', speechText: 'ڑال', tip: 'Say Ṛaal!'),
+    AlphabetItem(id: 'زال', letter: 'زال', sound: 'Zaal', word: 'زال', speechText: 'زال', tip: 'Say Zaal!'),
+    AlphabetItem(id: 'سال', letter: 'سال', sound: 'Saal', word: 'سال', speechText: 'سال', tip: 'Say Saal!'),
+    AlphabetItem(id: 'شال', letter: 'شال', sound: 'Shaal', word: 'شال', speechText: 'شال', tip: 'Say Shaal!'),
+    AlphabetItem(id: 'غال', letter: 'غال', sound: 'Ghaal', word: 'غال', speechText: 'غال', tip: 'Say Ghaal!'),
+    AlphabetItem(id: 'فال', letter: 'فال', sound: 'Faal', word: 'فال', speechText: 'فال', tip: 'Say Faal!'),
+    AlphabetItem(id: 'قال', letter: 'قال', sound: 'Qaal', word: 'قال', speechText: 'قال', tip: 'Say Qaal!'),
+    AlphabetItem(id: 'کال', letter: 'کال', sound: 'Kaal', word: 'کال', speechText: 'کال', tip: 'Say Kaal!'),
+    AlphabetItem(id: 'گال', letter: 'گال', sound: 'Gaal', word: 'گال', speechText: 'گال', tip: 'Say Gaal!'),
+    AlphabetItem(id: 'لال', letter: 'لال', sound: 'Laal', word: 'لال', speechText: 'لال', tip: 'Say Laal!'),
+    AlphabetItem(id: 'مال', letter: 'مال', sound: 'Maal', word: 'مال', speechText: 'مال', tip: 'Say Maal!'),
+    AlphabetItem(id: 'نال', letter: 'نال', sound: 'Naal', word: 'نال', speechText: 'نال', tip: 'Say Naal!'),
+    AlphabetItem(id: 'وال', letter: 'وال', sound: 'Waal', word: 'وال', speechText: 'وال', tip: 'Say Waal!'),
+    AlphabetItem(id: 'حال', letter: 'حال', sound: 'Haal', word: 'حال', speechText: 'حال', tip: 'Say Haal!'),
+    AlphabetItem(id: 'یال', letter: 'یال', sound: 'Yaal', word: 'یال', speechText: 'یال', tip: 'Say Yaal!'),
+    // Series 2: the "-aam" rhyme series (20 words).
+    AlphabetItem(id: 'آم', letter: 'آم', sound: 'Aam', word: 'آم', speechText: 'آم', tip: 'Say Aam!'),
+    AlphabetItem(id: 'بام', letter: 'بام', sound: 'Baam', word: 'بام', speechText: 'بام', tip: 'Say Baam!'),
+    AlphabetItem(id: 'پام', letter: 'پام', sound: 'Paam', word: 'پام', speechText: 'پام', tip: 'Say Paam!'),
+    AlphabetItem(id: 'تام', letter: 'تام', sound: 'Taam', word: 'تام', speechText: 'تام', tip: 'Say Taam!'),
+    AlphabetItem(id: 'جام', letter: 'جام', sound: 'Jaam', word: 'جام', speechText: 'جام', tip: 'Say Jaam!'),
+    AlphabetItem(id: 'چام', letter: 'چام', sound: 'Chaam', word: 'چام', speechText: 'چام', tip: 'Say Chaam!'),
+    AlphabetItem(id: 'حام', letter: 'حام', sound: 'Haam', word: 'حام', speechText: 'حام', tip: 'Say Haam!'),
+    AlphabetItem(id: 'خام', letter: 'خام', sound: 'Khaam', word: 'خام', speechText: 'خام', tip: 'Say Khaam!'),
+    AlphabetItem(id: 'دام', letter: 'دام', sound: 'Daam', word: 'دام', speechText: 'دام', tip: 'Say Daam!'),
+    AlphabetItem(id: 'رام', letter: 'رام', sound: 'Raam', word: 'رام', speechText: 'رام', tip: 'Say Raam!'),
+    AlphabetItem(id: 'سام', letter: 'سام', sound: 'Saam', word: 'سام', speechText: 'سام', tip: 'Say Saam!'),
+    AlphabetItem(id: 'شام', letter: 'شام', sound: 'Shaam', word: 'شام', speechText: 'شام', tip: 'Say Shaam!'),
+    AlphabetItem(id: 'عام', letter: 'عام', sound: 'Aam', word: 'عام', speechText: 'عام', tip: 'Say Aam!'),
+    AlphabetItem(id: 'فام', letter: 'فام', sound: 'Faam', word: 'فام', speechText: 'فام', tip: 'Say Faam!'),
+    AlphabetItem(id: 'کام', letter: 'کام', sound: 'Kaam', word: 'کام', speechText: 'کام', tip: 'Say Kaam!'),
+    AlphabetItem(id: 'گام', letter: 'گام', sound: 'Gaam', word: 'گام', speechText: 'گام', tip: 'Say Gaam!'),
+    AlphabetItem(id: 'لام', letter: 'لام', sound: 'Laam', word: 'لام', speechText: 'لام', tip: 'Say Laam!'),
+    AlphabetItem(id: 'نام', letter: 'نام', sound: 'Naam', word: 'نام', speechText: 'نام', tip: 'Say Naam!'),
+    AlphabetItem(id: 'وام', letter: 'وام', sound: 'Waam', word: 'وام', speechText: 'وام', tip: 'Say Waam!'),
+    AlphabetItem(id: 'حام', letter: 'حام', sound: 'Haam', word: 'حام', speechText: 'حام', tip: 'Say Haam!'),
+    // Series 3: the "-aan" rhyme series (17 words).
+    AlphabetItem(id: 'ان', letter: 'ان', sound: 'An', word: 'ان', speechText: 'ان', tip: 'Say An!'),
+    AlphabetItem(id: 'آن', letter: 'آن', sound: 'Aan', word: 'آن', speechText: 'آن', tip: 'Say Aan!'),
+    AlphabetItem(id: 'بان', letter: 'بان', sound: 'Baan', word: 'بان', speechText: 'بان', tip: 'Say Baan!'),
+    AlphabetItem(id: 'پان', letter: 'پان', sound: 'Paan', word: 'پان', speechText: 'پان', tip: 'Say Paan!'),
+    AlphabetItem(id: 'تان', letter: 'تان', sound: 'Taan', word: 'تان', speechText: 'تان', tip: 'Say Taan!'),
+    AlphabetItem(id: 'جان', letter: 'جان', sound: 'Jaan', word: 'جان', speechText: 'جان', tip: 'Say Jaan!'),
+    AlphabetItem(id: 'حان', letter: 'حان', sound: 'Haan', word: 'حان', speechText: 'حان', tip: 'Say Haan!'),
+    AlphabetItem(id: 'خان', letter: 'خان', sound: 'Khaan', word: 'خان', speechText: 'خان', tip: 'Say Khaan!'),
+    AlphabetItem(id: 'دان', letter: 'دان', sound: 'Daan', word: 'دان', speechText: 'دان', tip: 'Say Daan!'),
+    AlphabetItem(id: 'ڈان', letter: 'ڈان', sound: 'Ḍaan', word: 'ڈان', speechText: 'ڈان', tip: 'Say Ḍaan!'),
+    AlphabetItem(id: 'ران', letter: 'ران', sound: 'Raan', word: 'ران', speechText: 'ران', tip: 'Say Raan!'),
+    AlphabetItem(id: 'سان', letter: 'سان', sound: 'Saan', word: 'سان', speechText: 'سان', tip: 'Say Saan!'),
+    AlphabetItem(id: 'شان', letter: 'شان', sound: 'Shaan', word: 'شان', speechText: 'شان', tip: 'Say Shaan!'),
+    AlphabetItem(id: 'فان', letter: 'فان', sound: 'Faan', word: 'فان', speechText: 'فان', tip: 'Say Faan!'),
+    AlphabetItem(id: 'کان', letter: 'کان', sound: 'Kaan', word: 'کان', speechText: 'کان', tip: 'Say Kaan!'),
+    AlphabetItem(id: 'لان', letter: 'لان', sound: 'Laan', word: 'لان', speechText: 'لان', tip: 'Say Laan!'),
+    AlphabetItem(id: 'مان', letter: 'مان', sound: 'Maan', word: 'مان', speechText: 'مان', tip: 'Say Maan!'),
+    // Series 4: the "ab/ap" family (4 words).
+    AlphabetItem(id: 'اب', letter: 'اب', sound: 'Ab', word: 'اب', speechText: 'اب', tip: 'Say Ab!'),
+    AlphabetItem(id: 'آب', letter: 'آب', sound: 'Aab', word: 'آب', speechText: 'آب', tip: 'Say Aab!'),
+    AlphabetItem(id: 'اپ', letter: 'اپ', sound: 'Ap', word: 'اپ', speechText: 'اپ', tip: 'Say Ap!'),
+    AlphabetItem(id: 'آپ', letter: 'آپ', sound: 'Aap', word: 'آپ', speechText: 'آپ', tip: 'Say Aap!'),
+    // Series 5: the "ak/aag" family (8 words).
+    AlphabetItem(id: 'اک', letter: 'اک', sound: 'Ak', word: 'اک', speechText: 'اک', tip: 'Say Ak!'),
+    AlphabetItem(id: 'آگ', letter: 'آگ', sound: 'Aag', word: 'آگ', speechText: 'آگ', tip: 'Say Aag!'),
+    AlphabetItem(id: 'باگ', letter: 'باگ', sound: 'Baag', word: 'باگ', speechText: 'باگ', tip: 'Say Baag!'),
+    AlphabetItem(id: 'جاگ', letter: 'جاگ', sound: 'Jaag', word: 'جاگ', speechText: 'جاگ', tip: 'Say Jaag!'),
+    AlphabetItem(id: 'راگ', letter: 'راگ', sound: 'Raag', word: 'راگ', speechText: 'راگ', tip: 'Say Raag!'),
+    AlphabetItem(id: 'ساگ', letter: 'ساگ', sound: 'Saag', word: 'ساگ', speechText: 'ساگ', tip: 'Say Saag!'),
+    AlphabetItem(id: 'لاگ', letter: 'لاگ', sound: 'Laag', word: 'لاگ', speechText: 'لاگ', tip: 'Say Laag!'),
+    AlphabetItem(id: 'ناگ', letter: 'ناگ', sound: 'Naag', word: 'ناگ', speechText: 'ناگ', tip: 'Say Naag!'),
+  ];
+
+  static const Map<String, String> _letterPhoneticSounds = {
+    'a': 'ah', 'b': 'buh', 'c': 'kuh', 'd': 'duh', 'e': 'eh',
+    'f': 'feh', 'g': 'guh', 'h': 'huh', 'i': 'ih', 'j': 'juh',
+    'k': 'kuh', 'l': 'leh', 'm': 'muh', 'n': 'nuh', 'o': 'oh',
+    'p': 'puh', 'q': 'quh', 'r': 'ruh', 's': 'suh', 't': 'tuh',
+    'u': 'uh', 'v': 'vuh', 'w': 'wuh', 'x': 'ks', 'y': 'yuh', 'z': 'zuh'
+  };
+
   bool get _isNumbersMode => widget.mode == 'numbers';
-  List<AlphabetItem> get _items => _isNumbersMode ? _numbers : _alphabets;
+  bool get _isUrduMode => widget.mode == 'urdu';
+  List<AlphabetItem> get _items => widget.isDemo
+      ? (widget.demoItems ?? const [])
+      : (_isNumbersMode ? _numbers : (_isUrduMode ? _urduAlphabets : _alphabets));
 
   int _currentIndex = 0;
   AlphabetItem get _currentAlphabet => _items[_currentIndex];
@@ -205,26 +458,45 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
     try {
       final prefs = await SharedPreferences.getInstance();
       final userStr = prefs.getString('vaila_user');
+      String resolvedName = _studentName;
       if (userStr != null) {
         final userObj = jsonDecode(userStr);
         if (userObj['username'] != null && (userObj['username'] as String).isNotEmpty) {
-          if (mounted) {
-            setState(() {
-              _studentName = userObj['username'];
-            });
-          }
+          resolvedName = userObj['username'];
         }
+      }
+      final savedIndex = widget.isDemo
+          ? null
+          : prefs.getInt('vaila_progress_${resolvedName}_${widget.mode}');
+      if (mounted) {
+        setState(() {
+          _studentName = widget.isDemo ? 'Demo' : resolvedName;
+          if (savedIndex != null && savedIndex >= 0 && savedIndex < _items.length) {
+            _currentIndex = savedIndex;
+          }
+        });
       }
     } catch (e) {
       print('Learner name load notice: $e');
     }
   }
 
+  // Fire-and-forget: lets a student resume the exact word/letter they left
+  // off on when they log out or switch to a different module, instead of
+  // restarting the module from the beginning.
+  void _saveProgress() {
+    if (widget.isDemo) return; // demo attempts are anonymous/ephemeral — nothing to persist
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setInt('vaila_progress_${_studentName}_${widget.mode}', _currentIndex);
+    });
+  }
+
   void _handleLogout() async {
     _cancelTtsLoop = true;
     try { _flutterTts.stop(); } catch (_) {}
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    await prefs.remove('vaila_token');
+    await prefs.remove('vaila_user');
 
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
@@ -246,7 +518,29 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
   }
 
   void _initTts() async {
-    await _flutterTts.setLanguage('en-US');
+    if (_isUrduMode) {
+      bool urduAvailable = false;
+      for (final locale in ['ur-PK', 'ur-IN', 'ur']) {
+        try {
+          final available = await _flutterTts.isLanguageAvailable(locale);
+          if (available == true || available == 1) {
+            await _flutterTts.setLanguage(locale);
+            urduAvailable = true;
+            break;
+          }
+        } catch (_) {}
+      }
+      if (!urduAvailable) {
+        // No Urdu voice installed on this device — fall back so TTS still
+        // finishes setup and the Urdu script can still be read aloud,
+        // just without native Urdu pronunciation.
+        try { await _flutterTts.setLanguage('en-US'); } catch (_) {}
+      }
+    } else {
+      try {
+        await _flutterTts.setLanguage('en-US');
+      } catch (_) {}
+    }
     await _flutterTts.setSpeechRate(0.42);
     await _flutterTts.setPitch(1.25);
     await _flutterTts.awaitSpeakCompletion(true);
@@ -289,6 +583,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
 
   @override
   void dispose() {
+    _saveProgress();
     _countdownTimer?.cancel();
     _voiceStopTimer?.cancel();
     _amplitudeSubscription?.cancel();
@@ -324,11 +619,23 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
     final letter = _currentAlphabet.letter.toLowerCase();
     final phonic = phoneticMap[letter] ?? letter;
     final word = _currentAlphabet.word;
-    final soundToSpeak = _isNumbersMode ? _currentAlphabet.sound : "${letter.toUpperCase()} for $phonic $word";
+    // Urdu mode speaks the romanized letter name (e.g. "Alif") instead of the
+    // raw Urdu script — most devices have no Urdu TTS voice installed, and
+    // feeding Arabic-script text to an English voice produces silence rather
+    // than an error, so the romanized form is what actually guarantees sound.
+    final soundToSpeak = _isNumbersMode
+        ? _currentAlphabet.sound
+        : (_isUrduMode
+            ? _currentAlphabet.sound
+            : "${letter.toUpperCase()} for $phonic $word");
 
     for (int i = 0; i < 3; i++) {
       if (_cancelTtsLoop || !mounted) break;
-      await _flutterTts.speak(soundToSpeak);
+      try {
+        await _flutterTts.speak(soundToSpeak);
+      } catch (e) {
+        print('TTS speak error: $e');
+      }
       await Future.delayed(const Duration(milliseconds: 600));
     }
 
@@ -476,6 +783,8 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
         request.fields['target_alphabet'] = targetLetter;
         request.fields['spoken_text'] = spokenText;
         request.fields['student_id'] = _studentName;
+        request.fields['is_demo'] = widget.isDemo ? 'true' : 'false';
+        request.fields['source'] = 'app';
 
         if (audioPath.isNotEmpty) {
           try {
@@ -526,6 +835,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
       _isEvaluating = false;
       _currentIndex = (_currentIndex + 1) % _items.length;
     });
+    _saveProgress();
   }
 
   // ───── Live Camera Controller Methods ─────
@@ -739,7 +1049,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
           children: [
                         // ───── TOP BAR: Mirror, Logo, Exit ─────
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+              padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -747,8 +1057,8 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                   GestureDetector(
                     onTap: _toggleCamera,
                     child: Container(
-                      width: 90,
-                      height: 70,
+                      width: 78,
+                      height: 60,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
                         color: const Color(0xFFE0E7FF),
@@ -806,51 +1116,33 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                       children: [
                         Image.asset(
                           'assets/logo.jpg',
-                          height: 80,
-                          errorBuilder: (ctx, err, stack) => const Icon(Icons.hearing, color: Color(0xFF1E3A8A), size: 40),
-                        ),
-                        const SizedBox(height: 4),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1E3A8A),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Text(
-                            "VSCI&HI",
-                            style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          "For Children with Hearing Aid\n& Cochlear Implant",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 8, color: Colors.grey),
+                          height: 108,
+                          errorBuilder: (ctx, err, stack) => const Icon(Icons.hearing, color: Color(0xFF1E3A8A), size: 54),
                         ),
                         const SizedBox(height: 6),
-                        const Text(
-                          "VAILA'S Speech\nTrainer",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Color(0xFF1E3A8A), fontSize: 14, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 4),
                         Text(
-                          _isNumbersMode ? "NUMBERS" : "PHONICS",
-                          style: const TextStyle(color: Color(0xFFD32F2F), fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                          "VAILA'S Speech Trainer",
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.outfit(color: const Color(0xFF1E3A8A), fontSize: 17, fontWeight: FontWeight.w800),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 3),
+                        Text(
+                          _isNumbersMode ? "NUMBERS" : (_isUrduMode ? "URDU" : "PHONICS"),
+                          style: const TextStyle(color: Color(0xFFD32F2F), fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                        ),
+                        const SizedBox(height: 3),
                         const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.star, color: Colors.amber, size: 12),
+                            Icon(Icons.star, color: Colors.amber, size: 13),
                             SizedBox(width: 4),
                             Text(
-                              "Inclusive Learning\nFor Every Child",
+                              "Inclusive Learning For Every Child",
                               textAlign: TextAlign.center,
-                              style: TextStyle(color: Color(0xFF1E3A8A), fontSize: 10, fontWeight: FontWeight.bold),
+                              style: TextStyle(color: Color(0xFF1E3A8A), fontSize: 11, fontWeight: FontWeight.bold),
                             ),
                             SizedBox(width: 4),
-                            Icon(Icons.star, color: Colors.amber, size: 12),
+                            Icon(Icons.star, color: Colors.amber, size: 13),
                           ],
                         )
                       ],
@@ -908,7 +1200,32 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                 padding: const EdgeInsets.symmetric(horizontal: 22),
                 child: Column(
                   children: [
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 14),
+
+                    // Demo mode: persistent Sign Up CTA
+                    if (widget.isDemo)
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 14),
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => const SignupScreen()),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF10B981),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          ),
+                          icon: const Icon(Icons.person_add_alt_1_rounded),
+                          label: Text(
+                            "Enjoying it? Sign Up Now",
+                            style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 15),
+                          ),
+                        ),
+                      ),
 
                     // Playing 3x Sound Banner
                     if (_isSpeaking3x)
@@ -938,28 +1255,6 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                         ),
                       ),
 
-                    // Sound wave icon (green)
-                    Icon(
-                      Icons.graphic_eq_rounded,
-                      color: const Color(0xFFF57C00),
-                      size: 30,
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    // " " label
-                    Text(
-                      " ",
-                      style: GoogleFonts.outfit(
-                        fontSize: 14,
-                        color: const Color(0xFF9CA3AF),
-                        fontWeight: FontWeight.w500,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-
-                    const SizedBox(height: 4),
-
                     // ───── Large Alphabet Letter (with shake animation) ─────
                     AnimatedBuilder(
                       animation: _shakeAnimation,
@@ -980,33 +1275,48 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                               ? _currentAlphabet.letter
                               : _currentAlphabet.letter.toUpperCase(),
                           style: GoogleFonts.outfit(
-                            fontSize: _isNumbersMode ? 90 : 120,
+                            fontSize: _isNumbersMode ? 76 : 98,
                             fontWeight: FontWeight.w900,
                             color: const Color(0xFF1E3A8A),
-                            height: 1.15,
+                            height: 1.1,
                           ),
                         ),
                       ),
                     ),
 
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 4),
 
                     // Subtitle
                     Text(
                       "${_currentAlphabet.word}",
                       style: GoogleFonts.outfit(
-                        fontSize: 18,
+                        fontSize: 17,
                         color: const Color(0xFF9CA3AF),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
 
-                    const SizedBox(height: 30),
+                    if (!_isNumbersMode) ...[
+                      const SizedBox(height: 3),
+                      Text(
+                        _isUrduMode
+                            ? "sounds like \"${_currentAlphabet.sound}\""
+                            : "sounds like \"${_letterPhoneticSounds[_currentAlphabet.letter.toLowerCase()] ?? ''}\"",
+                        style: GoogleFonts.outfit(
+                          fontSize: 13,
+                          color: const Color(0xFFB5B5C3),
+                          fontWeight: FontWeight.w500,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+
+                    const SizedBox(height: 16),
 
                     // ───── Interactive Bottom Section ─────
                     _buildInteractiveBottomSection(),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 10),
                   ],
                 ),
               ),
@@ -1014,7 +1324,7 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
 
             // ───── BOTTOM BAR: Progress ─────
             Container(
-              padding: const EdgeInsets.fromLTRB(20, 14, 20, 18),
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: const BorderRadius.only(
@@ -1037,124 +1347,99 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          "Your Progress",
-                          style: GoogleFonts.outfit(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF64748B),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
                         Row(
                           children: [
-                            // Progress dots A–E with connecting lines
-                            ...List.generate(_items.length, (index) {
-                              final bool isCompleted = index < _currentIndex;
-                              final bool isCurrent = index == _currentIndex;
-                              final bool isActive = isCompleted || isCurrent;
-
-                              if (_isNumbersMode) {
-                                return Expanded(
-                                  child: Row(
-                                    children: [
-                                      if (index > 0)
-                                        Expanded(
-                                          child: Container(
-                                            height: 2.5,
-                                            decoration: BoxDecoration(
-                                              color: isCompleted
-                                                  ? const Color(0xFF1E3A8A)
-                                                  : const Color(0xFFE2E8F0),
-                                              borderRadius: BorderRadius.circular(2),
-                                            ),
-                                          ),
-                                        ),
-                                      if (isCurrent || index == 0 || index == _items.length - 1)
-                                        Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Container(
-                                              width: isCurrent ? 14 : 8,
-                                              height: isCurrent ? 14 : 8,
-                                              decoration: BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                color: isActive
-                                                    ? const Color(0xFF1E3A8A)
-                                                    : const Color(0xFFE2E8F0),
-                                              ),
-                                            ),
-                                            const SizedBox(height: 3),
-                                            if (isCurrent)
-                                              Text(
-                                                _items[index].letter,
-                                                style: GoogleFonts.outfit(
-                                                  fontSize: 8,
-                                                  fontWeight: FontWeight.w700,
-                                                  color: const Color(0xFF1E3A8A),
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-                                    ],
-                                  ),
-                                );
-                              }
-
-                              return Expanded(
-                                child: Row(
-                                  children: [
-                                    if (index > 0)
-                                      Expanded(
-                                        child: Container(
-                                          height: 2.5,
-                                          decoration: BoxDecoration(
-                                            color: isCompleted
-                                                ? const Color(0xFF1E3A8A)
-                                                : const Color(0xFFE2E8F0),
-                                            borderRadius: BorderRadius.circular(2),
-                                          ),
-                                        ),
-                                      ),
-                                    Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Container(
-                                          width: isCurrent ? 16 : 12,
-                                          height: isCurrent ? 16 : 12,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: isActive
-                                                ? const Color(0xFF1E3A8A)
-                                                : const Color(0xFFE2E8F0),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 5),
-                                        Text(
-                                          _items[index].letter.toUpperCase(),
-                                          style: GoogleFonts.outfit(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w700,
-                                            color: isActive
-                                                ? const Color(0xFF1E3A8A)
-                                                : const Color(0xFF9CA3AF),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                            Text(
+                              "Your Progress",
+                              style: GoogleFonts.outfit(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF64748B),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                "• ${_currentAlphabet.letter.toUpperCase()}  ${_currentIndex + 1}/${_items.length}",
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.outfit(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF1E3A8A),
                                 ),
-                              );
-                            }),
-                            const SizedBox(width: 10),
-                            Icon(
-                              Icons.emoji_events_rounded,
-                              color: _currentIndex >= _items.length
-                                  ? Colors.amber
-                                  : const Color(0xFFD1D5DB),
-                              size: 24,
+                              ),
                             ),
                           ],
+                        ),
+                        const SizedBox(height: 10),
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            // Reserve space for the spacing + trophy icon, then size
+                            // each dot so it always fits its share of the track —
+                            // this stays overflow-safe no matter how many items there are.
+                            final double trackWidth =
+                                (constraints.maxWidth - 34).clamp(0, double.infinity);
+                            final double segmentWidth =
+                                _items.isEmpty ? 0 : trackWidth / _items.length;
+                            double dotSize(double base) {
+                              final double maxAllowed = segmentWidth * 0.85;
+                              if (maxAllowed <= 0) return 0;
+                              return base <= maxAllowed ? base : (maxAllowed < 4 ? 4.0 : maxAllowed);
+                            }
+
+                            return Row(
+                              children: [
+                                ...List.generate(_items.length, (index) {
+                                  final bool isCompleted = index < _currentIndex;
+                                  final bool isCurrent = index == _currentIndex;
+                                  final bool isActive = isCompleted || isCurrent;
+                                  final bool showDot = isCurrent ||
+                                      index == 0 ||
+                                      index == _items.length - 1;
+                                  final double diameter =
+                                      dotSize(isCurrent ? 16.0 : 12.0);
+
+                                  return Expanded(
+                                    child: Row(
+                                      children: [
+                                        if (index > 0)
+                                          Expanded(
+                                            child: Container(
+                                              height: 2.5,
+                                              decoration: BoxDecoration(
+                                                color: isCompleted
+                                                    ? const Color(0xFF1E3A8A)
+                                                    : const Color(0xFFE2E8F0),
+                                                borderRadius: BorderRadius.circular(2),
+                                              ),
+                                            ),
+                                          ),
+                                        if (showDot)
+                                          Container(
+                                            width: diameter,
+                                            height: diameter,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: isActive
+                                                  ? const Color(0xFF1E3A8A)
+                                                  : const Color(0xFFE2E8F0),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  );
+                                }),
+                                const SizedBox(width: 10),
+                                Icon(
+                                  Icons.emoji_events_rounded,
+                                  color: _currentIndex >= _items.length
+                                      ? Colors.amber
+                                      : const Color(0xFFD1D5DB),
+                                  size: 24,
+                                ),
+                              ],
+                            );
+                          },
                         ),
                       ],
                     ),

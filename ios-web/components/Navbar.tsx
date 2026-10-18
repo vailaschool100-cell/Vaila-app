@@ -71,15 +71,8 @@ export default function Navbar() {
           }}
         >
           <Link href={loggedIn ? '/dashboard' : '/'} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div
-              style={{
-                width: 36, height: 36, borderRadius: 10,
-                background: 'linear-gradient(135deg, #06b6d4, #4361ee)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}
-            >
-              <span style={{ fontSize: 17, fontWeight: 900, color: '#fff' }}>V</span>
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.jpg" alt="Vaila" style={{ height: 44, width: 'auto', borderRadius: 8 }} />
             <span style={{ fontSize: 17, fontWeight: 800, color: 'var(--navy)' }}>Vaila</span>
           </Link>
 
