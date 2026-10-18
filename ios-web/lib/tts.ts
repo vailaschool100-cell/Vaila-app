@@ -35,17 +35,24 @@ function pickVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | undef
   // Always read the romanized text with the same en-US English voice
   // regardless of mode — matching the app exactly, which always calls
   // setLanguage('en-US') for every mode including Urdu (items speak their
-  // romanized form, e.g. "Baal", never the raw script). A plain "starts
-  // with en" fallback can land on an en-GB/en-IN/en-AU voice depending on
-  // what's installed, which sounds noticeably different from the app —
-  // so en-US is preferred strictly, with name-matching only used to break
-  // ties among en-US voices.
+  // romanized form, e.g. "Baal", never the raw script).
+  //
+  // Google's voice is strongly preferred over Windows/SAPI voices (e.g.
+  // "Microsoft Zira"): SAPI voices tend to spell out short, unusual-looking
+  // words letter-by-letter ("Aal" -> "A A L") instead of pronouncing them,
+  // which is exactly the mismatch reported against the app. Android's
+  // system TTS (what the app actually uses) is Google's engine, so
+  // preferring a Google voice here is also the closest real match, not
+  // just a workaround for the spelling-out quirk.
   const isEnUS = (v: SpeechSynthesisVoice) => v.lang?.toLowerCase() === 'en-us';
   const isEn = (v: SpeechSynthesisVoice) => v.lang?.toLowerCase().startsWith('en');
+  const isGoogle = (v: SpeechSynthesisVoice) => v.name.toLowerCase().includes('google');
   const isFemale = (v: SpeechSynthesisVoice) =>
     FEMALE_VOICE_HINTS.some((hint) => v.name.toLowerCase().includes(hint));
 
   return (
+    voices.find((v) => isEnUS(v) && isGoogle(v)) ||
+    voices.find((v) => isEn(v) && isGoogle(v)) ||
     voices.find((v) => isEnUS(v) && isFemale(v)) ||
     voices.find(isEnUS) ||
     voices.find((v) => isEn(v) && isFemale(v)) ||
