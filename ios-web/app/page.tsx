@@ -113,7 +113,7 @@ export default function HomePage() {
         </h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 20, marginTop: 36 }}>
           <FeatureCard icon={<BookOpen size={26} />} color="#1e3a8a" title="Phonics A-Z" desc="26 letters, each with a themed word and a pronunciation hint." />
-          <FeatureCard icon={<Hash size={26} />} color="#d32f2f" title="Numbers 1-1000" desc="Count from one to a thousand with guided speech practice." />
+          <FeatureCard icon={<Hash size={26} />} color="#d32f2f" title="Numbers" desc="Count from one to a thousand with guided speech practice." />
           <FeatureCard icon={<Languages size={26} />} color="#16a34a" title="اردو الفاظ" desc="79 Urdu words across five rhyming word families." />
         </div>
       </section>

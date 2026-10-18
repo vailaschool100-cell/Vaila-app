@@ -33,8 +33,29 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
   }
 
   void _handleLogout() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text("Logout"),
+        content: const Text("Are you sure you want to logout?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text("Yes"),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    await prefs.remove('vaila_token');
+    await prefs.remove('vaila_user');
 
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
@@ -50,42 +71,6 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
       body: SafeArea(
         child: Stack(
           children: [
-            // Exit Button
-            Positioned(
-              top: 16,
-              right: 16,
-              child: GestureDetector(
-                onTap: _handleLogout,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      )
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      const Icon(Icons.close_rounded, color: Color(0xFFD32F2F), size: 28),
-                      Text(
-                        "Exit",
-                        style: GoogleFonts.outfit(
-                          color: const Color(0xFFD32F2F),
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            
             // Main Content
             Center(
               child: SingleChildScrollView(
@@ -161,7 +146,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                     
                     // Numbers Card
                     _buildLessonCard(
-                      title: "Numbers 1-1000",
+                      title: "Numbers",
                       titleColor: const Color(0xFFD32F2F),
                       onTap: () {
                         Navigator.of(context).push(
@@ -186,7 +171,22 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                         );
                       },
                     ),
-                    
+
+                    const SizedBox(height: 20),
+
+                    // Urdu Alphabets Card
+                    _buildLessonCard(
+                      title: "اردو حروف تہجی",
+                      titleColor: const Color(0xFF16A34A),
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const VailaHomeScreen(mode: 'urdu'),
+                          ),
+                        );
+                      },
+                    ),
+
                     const SizedBox(height: 60),
                     
                     // Footer
@@ -198,6 +198,43 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                       ),
                     ),
                   ],
+                ),
+              ),
+            ),
+
+            // Exit Button (must stay last so it sits above the scrollable
+            // content for tap hit-testing, not just visually)
+            Positioned(
+              top: 16,
+              right: 16,
+              child: GestureDetector(
+                onTap: _handleLogout,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      )
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      const Icon(Icons.close_rounded, color: Color(0xFFD32F2F), size: 28),
+                      Text(
+                        "Exit",
+                        style: GoogleFonts.outfit(
+                          color: const Color(0xFFD32F2F),
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    ],
+                  ),
                 ),
               ),
             ),

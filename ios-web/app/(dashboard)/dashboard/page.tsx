@@ -7,7 +7,7 @@ import { getUser } from '@/lib/session';
 
 const LESSONS = [
   { mode: 'alphabets', title: 'Phonics A-Z', desc: '26 letters, each with a themed sample word.', icon: BookOpen, color: 'var(--navy)', bg: '#e0eaff' },
-  { mode: 'numbers', title: 'Numbers 1-1000', desc: 'Count from one all the way to a thousand.', icon: Hash, color: 'var(--red)', bg: '#fde2e2' },
+  { mode: 'numbers', title: 'Numbers', desc: 'Count from one all the way to a thousand.', icon: Hash, color: 'var(--red)', bg: '#fde2e2' },
   { mode: 'urdu', title: 'اردو حروف تہجی', desc: '79 Urdu words across five word families.', icon: Languages, color: 'var(--green)', bg: '#dcfce7' },
 ] as const;
 
