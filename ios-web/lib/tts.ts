@@ -31,11 +31,12 @@ export function loadVoices(): Promise<SpeechSynthesisVoice[]> {
   });
 }
 
-function pickVoice(voices: SpeechSynthesisVoice[], mode: PracticeMode): SpeechSynthesisVoice | undefined {
-  if (mode === 'urdu') {
-    const urduVoice = voices.find((v) => v.lang?.toLowerCase().startsWith('ur'));
-    if (urduVoice) return urduVoice;
-  }
+function pickVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | undefined {
+  // Always read the romanized text with the same English voice regardless of
+  // mode — matching the app exactly. Urdu items speak their romanized form
+  // (e.g. "Baal"), never the raw script, and picking an actual Urdu-language
+  // voice to read that Latin text produces different, worse pronunciation
+  // than an English voice reading it — confirmed against the app's behavior.
   const female = voices.find((v) =>
     FEMALE_VOICE_HINTS.some((hint) => v.name.toLowerCase().includes(hint))
   );
@@ -83,10 +84,10 @@ function speakOnce(text: string, voice: SpeechSynthesisVoice | undefined, rate: 
 
 // Must be invoked synchronously from a real click handler (iOS Safari gesture rule).
 export async function speakNTimes(text: string, options: SpeakOptions): Promise<void> {
-  const { times = 3, gapMs = 600, rate = 0.8, pitch = 1.25, mode, onEach } = options;
+  const { times = 3, gapMs = 600, rate = 0.8, pitch = 1.25, onEach } = options;
   cancelFlag = false;
   const voices = await loadVoices();
-  const voice = pickVoice(voices, mode);
+  const voice = pickVoice(voices);
 
   for (let i = 0; i < times; i++) {
     if (cancelFlag) break;

@@ -376,8 +376,16 @@ class _VailaHomeScreenState extends State<VailaHomeScreen>
     'u': 'uh', 'v': 'vuh', 'w': 'wuh', 'x': 'ks', 'y': 'yuh', 'z': 'zuh'
   };
 
-  bool get _isNumbersMode => widget.mode == 'numbers';
-  bool get _isUrduMode => widget.mode == 'urdu';
+  // Demo mode mixes items from all 3 categories in one list, so the active
+  // category must be read off the current item itself rather than a single
+  // fixed widget.mode — otherwise every demo item speaks with the alphabets
+  // "X for Y Z" phrasing, even numbers/Urdu ones.
+  bool get _isNumbersMode => widget.isDemo
+      ? double.tryParse(_currentAlphabet.id) != null
+      : widget.mode == 'numbers';
+  bool get _isUrduMode => widget.isDemo
+      ? _currentAlphabet.id.runes.any((r) => r >= 0x0600 && r <= 0x06FF)
+      : widget.mode == 'urdu';
   List<AlphabetItem> get _items => widget.isDemo
       ? (widget.demoItems ?? const [])
       : (_isNumbersMode ? _numbers : (_isUrduMode ? _urduAlphabets : _alphabets));
