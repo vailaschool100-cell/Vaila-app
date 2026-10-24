@@ -14,7 +14,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showForgot, setShowForgot] = useState(false);
   const [paymentModalUser, setPaymentModalUser] = useState<string | null>(null);
 
   const handleLogin = async () => {
@@ -91,12 +90,12 @@ export default function LoginPage() {
           />
         </div>
 
-        <button
-          onClick={() => setShowForgot(true)}
-          style={{ background: 'none', border: 'none', color: 'var(--navy)', fontSize: 13, marginTop: 10, cursor: 'pointer' }}
+        <a
+          href="/forgot-password"
+          style={{ display: 'inline-block', color: 'var(--navy)', fontSize: 13, marginTop: 10 }}
         >
           Forgot password?
-        </button>
+        </a>
 
         <button onClick={handleLogin} disabled={isLoading} className="btn-primary" style={{ marginTop: 20 }}>
           {isLoading ? <span className="spinner" /> : (<><LogIn size={18} /> Sign In</>)}
@@ -109,25 +108,6 @@ export default function LoginPage() {
           </a>
         </p>
       </div>
-
-      {showForgot && (
-        <div
-          style={{
-            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 24,
-          }}
-        >
-          <div style={{ background: '#fff', borderRadius: 16, padding: 24, maxWidth: 360 }}>
-            <h3 style={{ margin: 0, color: 'var(--navy)' }}>Forgot Password?</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>
-              Please contact Admin@vaila.com to reset your password.
-            </p>
-            <button onClick={() => setShowForgot(false)} className="btn-primary" style={{ marginTop: 12 }}>
-              OK
-            </button>
-          </div>
-        </div>
-      )}
 
       {paymentModalUser && (
         <MonthlyPaymentModal

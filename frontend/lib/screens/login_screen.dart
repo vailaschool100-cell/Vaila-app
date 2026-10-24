@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'signup_screen.dart';
 import 'waiting_approval_screen.dart';
 import 'main_navigation_screen.dart';
+import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -97,25 +98,9 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _showForgotPasswordDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        backgroundColor: const Color(0xFF1E293B),
-        title: Text("Forgot Password", style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold)),
-        content: Text(
-          "Please contact Vaila Admin at Admin@vaila.com to reset your password or upload fee proof.",
-          style: GoogleFonts.outfit(color: Colors.grey.shade300, fontSize: 14),
-        ),
-        actions: [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1E3A8A)),
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text("OK", style: TextStyle(color: Colors.white)),
-          )
-        ],
-      ),
+  void _goToForgotPassword() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
     );
   }
 
@@ -198,7 +183,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed: _showForgotPasswordDialog,
+                      onPressed: _goToForgotPassword,
                       child: Text("Forgot password?", style: GoogleFonts.outfit(color: const Color(0xFF1E3A8A), fontSize: 13)),
                     ),
                   ),

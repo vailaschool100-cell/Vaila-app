@@ -87,6 +87,32 @@ export async function uploadMonthlyPayment(
   return data;
 }
 
+export async function checkEmail(email: string): Promise<{ exists: boolean }> {
+  const res = await fetch(`${API_URL}/api/auth/check-email`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  const data = await res.json().catch(() => ({}));
+  return { exists: !!data.exists };
+}
+
+export async function resetPassword(
+  email: string,
+  newPassword: string
+): Promise<{ success: boolean; message?: string }> {
+  const res = await fetch(`${API_URL}/api/auth/reset-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, new_password: newPassword }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    return { success: false, message: data.detail || data.message || 'This email is not registered' };
+  }
+  return { success: true, message: data.message };
+}
+
 export async function updateProfile(
   username: string,
   email: string,

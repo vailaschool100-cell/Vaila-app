@@ -434,6 +434,13 @@ class LoginRequest(BaseModel):
     email_or_username: str
     password: str
 
+class CheckEmailRequest(BaseModel):
+    email: str
+
+class ResetPasswordRequest(BaseModel):
+    email: str
+    new_password: str
+
 
 # ─── Auth Routes ──────────────────────────────────────────────────────────────
 @app.post("/api/auth/register")
@@ -561,6 +568,46 @@ def login(req: LoginRequest):
             "is_active": bool(user_dict.get("is_active"))
         }
     }
+
+
+@app.post("/api/auth/check-email")
+def check_email(req: CheckEmailRequest):
+    email = req.email.strip()
+    if db is not None:
+        found = db.users.find_one({"email": email}) is not None
+    else:
+        conn = sqlite3.connect("vaila.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1 FROM users WHERE email = ?", (email,))
+        found = cursor.fetchone() is not None
+        conn.close()
+    return {"exists": found}
+
+
+@app.post("/api/auth/reset-password")
+def reset_password(req: ResetPasswordRequest):
+    email = req.email.strip()
+    if not req.new_password:
+        raise HTTPException(status_code=400, detail="New password is required")
+
+    new_hash = hash_password(req.new_password)
+
+    if db is not None:
+        result = db.users.update_one({"email": email}, {"$set": {"password_hash": new_hash}})
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="This email is not registered")
+    else:
+        conn = sqlite3.connect("vaila.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
+        if not cursor.fetchone():
+            conn.close()
+            raise HTTPException(status_code=404, detail="This email is not registered")
+        cursor.execute("UPDATE users SET password_hash = ? WHERE email = ?", (new_hash, email))
+        conn.commit()
+        conn.close()
+
+    return {"success": True, "message": "Password updated successfully"}
 
 
 @app.post("/api/auth/upload-monthly-payment")
