@@ -92,11 +92,12 @@ class _PaymentUploadScreenState extends State<PaymentUploadScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFFFBF8F1),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text("Registration Fee Payment", style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold)),
+        iconTheme: const IconThemeData(color: Color(0xFF1E3A8A)),
+        title: Text("Registration Fee Payment", style: GoogleFonts.outfit(color: const Color(0xFF1E3A8A), fontWeight: FontWeight.bold)),
       ),
       body: SafeArea(
         child: Center(
@@ -111,22 +112,23 @@ class _PaymentUploadScreenState extends State<PaymentUploadScreen> {
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E293B),
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFF38BDF8).withOpacity(0.3)),
+                      border: Border.all(color: const Color(0xFF1E3A8A).withOpacity(0.15)),
+                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 3))],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.account_balance_rounded, color: Color(0xFF38BDF8), size: 28),
+                            const Icon(Icons.account_balance_rounded, color: Color(0xFF1E3A8A), size: 28),
                             const SizedBox(width: 10),
-                            Text("Bank Payment Details", style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                            Text("Bank Payment Details", style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF1E3A8A))),
                           ],
                         ),
                         const SizedBox(height: 14),
-                        Text("Pay registration fee to start learning:", style: GoogleFonts.outfit(color: const Color(0xFF94A3B8), fontSize: 13)),
+                        Text("Pay registration fee to start learning:", style: GoogleFonts.outfit(color: Colors.grey.shade600, fontSize: 13)),
                         const SizedBox(height: 10),
                         _buildDetailRow("Bank Name:", "Meezan Bank"),
                         _buildDetailRow("Account Title:", "Vaila Teaching System"),
@@ -156,10 +158,10 @@ class _PaymentUploadScreenState extends State<PaymentUploadScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E293B),
+                        color: const Color(0xFFF9FAFB),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: _selectedImage != null ? Colors.greenAccent : const Color(0xFF4361EE),
+                          color: _selectedImage != null ? const Color(0xFF10B981) : const Color(0xFF1E3A8A),
                           width: 2,
                         ),
                       ),
@@ -167,7 +169,7 @@ class _PaymentUploadScreenState extends State<PaymentUploadScreen> {
                         children: [
                           Icon(
                             _selectedImage != null ? Icons.check_circle_rounded : Icons.cloud_upload_rounded,
-                            color: _selectedImage != null ? Colors.greenAccent : const Color(0xFF4361EE),
+                            color: _selectedImage != null ? const Color(0xFF10B981) : const Color(0xFF1E3A8A),
                             size: 48,
                           ),
                           const SizedBox(height: 12),
@@ -176,13 +178,13 @@ class _PaymentUploadScreenState extends State<PaymentUploadScreen> {
                             style: GoogleFonts.outfit(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: _selectedImage != null ? Colors.greenAccent : Colors.white,
+                              color: _selectedImage != null ? const Color(0xFF10B981) : const Color(0xFF1E3A8A),
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             _selectedImage != null ? "Tap to change image" : "Select bank transfer receipt from gallery",
-                            style: GoogleFonts.outfit(color: const Color(0xFF94A3B8), fontSize: 12),
+                            style: GoogleFonts.outfit(color: Colors.grey.shade600, fontSize: 12),
                           ),
                         ],
                       ),
@@ -219,13 +221,13 @@ class _PaymentUploadScreenState extends State<PaymentUploadScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: GoogleFonts.outfit(color: const Color(0xFF94A3B8), fontSize: 13)),
+          Text(label, style: GoogleFonts.outfit(color: Colors.grey.shade600, fontSize: 13)),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               value,
               textAlign: TextAlign.right,
-              style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+              style: GoogleFonts.outfit(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 13),
             ),
           ),
         ],

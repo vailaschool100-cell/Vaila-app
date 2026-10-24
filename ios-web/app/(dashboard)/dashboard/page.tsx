@@ -22,7 +22,7 @@ export default function DashboardPage() {
   return (
     <main style={{ maxWidth: 1000, margin: '0 auto', padding: '48px 24px 72px' }}>
       <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--navy)', margin: 0 }}>
-        {username ? `Welcome back, ${username} 👋` : 'Welcome back 👋'}
+        {username ? `Welcome, ${username} 👋` : 'Welcome 👋'}
       </h1>
       <p style={{ color: 'var(--text-muted)', marginTop: 8 }}>
         Pick a module to continue practicing. Your progress is saved automatically.

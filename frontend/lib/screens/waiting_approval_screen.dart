@@ -54,22 +54,22 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: Colors.white,
         title: Row(
           children: [
-            const Icon(Icons.check_circle_rounded, color: Colors.greenAccent, size: 28),
+            const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 28),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 "Account Approved!",
-                style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.greenAccent, fontSize: 18),
+                style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: const Color(0xFF10B981), fontSize: 18),
               ),
             ),
           ],
         ),
         content: Text(
           "Your account payment proof has been verified and activated by Vaila Admin! Now you can login to start learning.",
-          style: GoogleFonts.outfit(color: Colors.white, fontSize: 15),
+          style: GoogleFonts.outfit(color: Colors.black87, fontSize: 15),
         ),
         actions: [
           ElevatedButton(
@@ -97,7 +97,7 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFFFBF8F1),
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -108,30 +108,30 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B),
+                    color: Colors.white,
                     shape: BoxShape.circle,
                     boxShadow: [
-                      BoxShadow(color: const Color(0xFF4361EE).withOpacity(0.3), blurRadius: 30, spreadRadius: 5)
+                      BoxShadow(color: const Color(0xFF1E3A8A).withOpacity(0.15), blurRadius: 30, spreadRadius: 5)
                     ],
                   ),
-                  child: const CircularProgressIndicator(color: Color(0xFF38BDF8), strokeWidth: 4),
+                  child: const CircularProgressIndicator(color: Color(0xFF1E3A8A), strokeWidth: 4),
                 ),
                 const SizedBox(height: 32),
                 Text(
                   "Waiting for Confirmation...",
-                  style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.w900, color: const Color(0xFF38BDF8)),
+                  style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.w900, color: const Color(0xFF1E3A8A)),
                 ),
                 const SizedBox(height: 12),
                 Text(
                   "Your registration payment screenshot has been submitted to Admin.\nAs soon as Admin approves your payment, you will get an instant notification to login!",
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.outfit(fontSize: 14, color: const Color(0xFF94A3B8)),
+                  style: GoogleFonts.outfit(fontSize: 14, color: Colors.grey.shade600),
                 ),
                 const SizedBox(height: 40),
 
                 OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFF4361EE)),
+                    side: const BorderSide(color: Color(0xFF1E3A8A)),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
                   onPressed: () {
@@ -140,8 +140,8 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
                       (route) => false,
                     );
                   },
-                  icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF38BDF8)),
-                  label: Text("Back to Login", style: GoogleFonts.outfit(color: const Color(0xFF38BDF8), fontWeight: FontWeight.bold)),
+                  icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF1E3A8A)),
+                  label: Text("Back to Login", style: GoogleFonts.outfit(color: const Color(0xFF1E3A8A), fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
