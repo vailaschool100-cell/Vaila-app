@@ -1,4 +1,4 @@
-import { API_URL } from './client';
+import { API_URL, fetchWithTimeout } from './client';
 import type { VailaUser } from '../session';
 
 export interface LoginResult {
@@ -88,7 +88,7 @@ export async function uploadMonthlyPayment(
 }
 
 export async function checkEmail(email: string): Promise<{ exists: boolean }> {
-  const res = await fetch(`${API_URL}/api/auth/check-email`, {
+  const res = await fetchWithTimeout(`${API_URL}/api/auth/check-email`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email }),
@@ -101,7 +101,7 @@ export async function resetPassword(
   email: string,
   newPassword: string
 ): Promise<{ success: boolean; message?: string }> {
-  const res = await fetch(`${API_URL}/api/auth/reset-password`, {
+  const res = await fetchWithTimeout(`${API_URL}/api/auth/reset-password`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, new_password: newPassword }),
