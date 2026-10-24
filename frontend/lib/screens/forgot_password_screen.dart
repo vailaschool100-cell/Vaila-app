@@ -21,38 +21,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   bool _emailVerified = false;
   bool _isLoading = false;
-  bool _wakingUp = false;
   String? _errorMessage;
   String? _successMessage;
-  Timer? _wakeupTimer;
 
   @override
   void dispose() {
     _emailController.dispose();
     _newPasswordController.dispose();
     _confirmPasswordController.dispose();
-    _wakeupTimer?.cancel();
     super.dispose();
-  }
-
-  // The backend's free-tier host spins down when idle and can take 30-50s
-  // to wake up on the first request — this just lets the user know what's
-  // happening instead of staring at a spinner with no explanation.
-  void _startLoading() {
-    setState(() {
-      _isLoading = true;
-      _wakingUp = false;
-      _errorMessage = null;
-    });
-    _wakeupTimer?.cancel();
-    _wakeupTimer = Timer(const Duration(seconds: 4), () {
-      if (mounted) setState(() => _wakingUp = true);
-    });
-  }
-
-  void _stopLoading() {
-    _wakeupTimer?.cancel();
-    if (mounted) setState(() { _isLoading = false; _wakingUp = false; });
   }
 
   void _handleCheckEmail() async {
@@ -62,7 +39,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       return;
     }
 
-    _startLoading();
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
     try {
       final response = await http.post(
@@ -82,7 +62,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     } catch (e) {
       setState(() => _errorMessage = "Connection error. Please try again.");
     } finally {
-      _stopLoading();
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -103,7 +83,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       return;
     }
 
-    _startLoading();
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
     try {
       final response = await http.post(
@@ -129,7 +112,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     } catch (e) {
       setState(() => _errorMessage = "Connection error. Please try again.");
     } finally {
-      _stopLoading();
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -180,21 +163,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         border: Border.all(color: Colors.redAccent),
                       ),
                       child: Text(_errorMessage!, style: GoogleFonts.outfit(color: Colors.redAccent, fontSize: 13)),
-                    ),
-
-                  if (_wakingUp && _errorMessage == null)
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      margin: const EdgeInsets.only(bottom: 20),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF38BDF8).withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF38BDF8)),
-                      ),
-                      child: Text(
-                        "Still working — our server is waking up from idle, this can take up to a minute on the first request.",
-                        style: GoogleFonts.outfit(color: const Color(0xFF0369A1), fontSize: 13),
-                      ),
                     ),
 
                   if (_successMessage != null)

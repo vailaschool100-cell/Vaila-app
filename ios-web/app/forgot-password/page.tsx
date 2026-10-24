@@ -1,15 +1,10 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, ArrowRight } from 'lucide-react';
 import { checkEmail, resetPassword } from '@/lib/api/auth';
 import AuthLayout from '@/components/AuthLayout';
-
-// The backend's free-tier host spins down when idle and can take 30-50s to
-// wake up on the first request — this just lets the user know what's
-// happening instead of staring at a spinner with no explanation.
-const WAKEUP_HINT_DELAY_MS = 4000;
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -18,29 +13,15 @@ export default function ForgotPasswordPage() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [wakingUp, setWakingUp] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const wakeupTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const startLoading = () => {
-    setIsLoading(true);
-    setWakingUp(false);
-    wakeupTimer.current = setTimeout(() => setWakingUp(true), WAKEUP_HINT_DELAY_MS);
-  };
-
-  const stopLoading = () => {
-    if (wakeupTimer.current) clearTimeout(wakeupTimer.current);
-    setIsLoading(false);
-    setWakingUp(false);
-  };
 
   const handleCheckEmail = async () => {
     if (!email.trim()) {
       setError('Please enter your email address.');
       return;
     }
-    startLoading();
+    setIsLoading(true);
     setError('');
     try {
       const { exists } = await checkEmail(email.trim());
@@ -49,14 +30,10 @@ export default function ForgotPasswordPage() {
       } else {
         setError('This email is not registered.');
       }
-    } catch (e) {
-      setError(
-        e instanceof DOMException && e.name === 'AbortError'
-          ? 'The server took too long to respond (it may have been waking up). Please try again.'
-          : 'Connection error. Please try again.'
-      );
+    } catch {
+      setError('Connection error. Please try again.');
     } finally {
-      stopLoading();
+      setIsLoading(false);
     }
   };
 
@@ -73,7 +50,7 @@ export default function ForgotPasswordPage() {
       setError('Passwords do not match.');
       return;
     }
-    startLoading();
+    setIsLoading(true);
     setError('');
     try {
       const data = await resetPassword(email.trim(), newPassword);
@@ -83,14 +60,10 @@ export default function ForgotPasswordPage() {
       } else {
         setError(data.message || 'This email is not registered.');
       }
-    } catch (e) {
-      setError(
-        e instanceof DOMException && e.name === 'AbortError'
-          ? 'The server took too long to respond (it may have been waking up). Please try again.'
-          : 'Connection error. Please try again.'
-      );
+    } catch {
+      setError('Connection error. Please try again.');
     } finally {
-      stopLoading();
+      setIsLoading(false);
     }
   };
 
@@ -111,16 +84,6 @@ export default function ForgotPasswordPage() {
 
       <div style={{ marginTop: 24 }}>
         {error && <div className="error-banner">{error}</div>}
-        {wakingUp && !error && (
-          <div
-            style={{
-              background: '#e0f2fe', color: '#0369a1', padding: '12px 16px',
-              borderRadius: 12, fontSize: 13, marginBottom: 16,
-            }}
-          >
-            Still working — our server is waking up from idle, this can take up to a minute on the first request.
-          </div>
-        )}
         {success && (
           <div
             style={{
