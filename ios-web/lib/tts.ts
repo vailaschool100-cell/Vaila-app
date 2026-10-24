@@ -78,25 +78,64 @@ export function cancelSpeak() {
   }
 }
 
+// Chrome can leave the speech queue in a stuck state on a fresh page load —
+// the very first speak() call in the tab's lifetime sometimes never fires
+// onend/onerror at all, freezing whatever UI is awaiting it. Calling
+// cancel() once before the first-ever utterance resets the engine and
+// reliably avoids this (well-documented speechSynthesis quirk); once any
+// mode has successfully spoken, later modes are unaffected — which matches
+// the reported symptom of Urdu "fixing itself" after visiting another mode
+// first.
+let enginePrimed = false;
+
 function speakOnce(text: string, voice: SpeechSynthesisVoice | undefined, rate: number, pitch: number): Promise<void> {
   return new Promise((resolve) => {
     if (typeof window === 'undefined' || !window.speechSynthesis) {
       resolve();
       return;
     }
+    const synth = window.speechSynthesis;
+
+    if (!enginePrimed) {
+      enginePrimed = true;
+      try {
+        synth.cancel();
+      } catch {
+        /* no-op */
+      }
+    }
+
     try {
-      window.speechSynthesis.resume();
+      synth.resume();
     } catch {
       /* no-op */
     }
+
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'en-US';
     if (voice) utterance.voice = voice;
     utterance.rate = rate;
     utterance.pitch = pitch;
-    utterance.onend = () => resolve();
-    utterance.onerror = () => resolve();
-    window.speechSynthesis.speak(utterance);
+
+    let settled = false;
+    const safetyTimer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      resolve();
+    }, 4000); // some browsers/voices silently never fire onend/onerror — without
+    // this the UI gets stuck forever on "1 of 3" with no way to recover short
+    // of reloading the page.
+
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(safetyTimer);
+      resolve();
+    };
+    utterance.onend = finish;
+    utterance.onerror = finish;
+
+    synth.speak(utterance);
   });
 }
 
