@@ -2,7 +2,42 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Activity, Award, Volume2, Users, CheckCircle2, AlertCircle, RefreshCw, Eye, Check, X, ShieldAlert, LogOut } from 'lucide-react';
+import { Activity, Award, Volume2, Users, CheckCircle2, AlertCircle, RefreshCw, Eye, Check, X, ShieldAlert, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
+
+const PAGE_SIZE = 10;
+
+function Pagination({ page, pageCount, onPageChange }: { page: number; pageCount: number; onPageChange: (p: number) => void }) {
+  if (pageCount <= 1) return null;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginTop: '18px' }}>
+      <button
+        onClick={() => onPageChange(Math.max(1, page - 1))}
+        disabled={page === 1}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '4px',
+          background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
+          color: page === 1 ? '#475569' : '#e2e8f0', padding: '6px 14px', borderRadius: '8px',
+          cursor: page === 1 ? 'default' : 'pointer', fontWeight: 600, fontSize: '13px'
+        }}
+      >
+        <ChevronLeft size={14} /> Prev
+      </button>
+      <span style={{ color: '#94a3b8', fontSize: '13px', fontWeight: 600 }}>Page {page} of {pageCount}</span>
+      <button
+        onClick={() => onPageChange(Math.min(pageCount, page + 1))}
+        disabled={page === pageCount}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '4px',
+          background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
+          color: page === pageCount ? '#475569' : '#e2e8f0', padding: '6px 14px', borderRadius: '8px',
+          cursor: page === pageCount ? 'default' : 'pointer', fontWeight: 600, fontSize: '13px'
+        }}
+      >
+        Next <ChevronRight size={14} />
+      </button>
+    </div>
+  );
+}
 
 interface UserItem {
   id: number;
@@ -72,6 +107,11 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'users' | 'analytics' | 'numbers' | 'urdu'>('users');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  const [usersPage, setUsersPage] = useState(1);
+  const [analyticsPage, setAnalyticsPage] = useState(1);
+  const [numbersPage, setNumbersPage] = useState(1);
+  const [urduPage, setUrduPage] = useState(1);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -301,7 +341,7 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {users.map((u) => (
+                {users.slice((usersPage - 1) * PAGE_SIZE, usersPage * PAGE_SIZE).map((u) => (
                   <tr key={u.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                     <td style={{ padding: '16px 12px' }}>
                       <div style={{ fontWeight: 700, color: '#fff' }}>{u.username}</div>
@@ -410,6 +450,11 @@ export default function AdminDashboard() {
               </tbody>
             </table>
           </div>
+          <Pagination
+            page={usersPage}
+            pageCount={Math.max(1, Math.ceil(users.length / PAGE_SIZE))}
+            onPageChange={setUsersPage}
+          />
         </div>
       ) : activeTab === 'analytics' ? (
         /* Phonics Analytics View */
@@ -448,7 +493,7 @@ export default function AdminDashboard() {
               </thead>
               <tbody>
                 {stats.recent_logs && stats.recent_logs.length > 0 ? (
-                  stats.recent_logs.map((log, index) => {
+                  stats.recent_logs.slice((analyticsPage - 1) * PAGE_SIZE, analyticsPage * PAGE_SIZE).map((log, index) => {
                     const isPassed = Boolean(log.passed === true || log.passed === 1);
                     return (
                       <tr key={log.id || index} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
@@ -525,6 +570,11 @@ export default function AdminDashboard() {
               </tbody>
             </table>
           </div>
+          <Pagination
+            page={analyticsPage}
+            pageCount={Math.max(1, Math.ceil(stats.recent_logs.length / PAGE_SIZE))}
+            onPageChange={setAnalyticsPage}
+          />
         </div>
       ) : activeTab === 'numbers' ? (
         /* Numbers Assessment View */
@@ -563,7 +613,7 @@ export default function AdminDashboard() {
               </thead>
               <tbody>
                 {numberStats.recent_logs && numberStats.recent_logs.length > 0 ? (
-                  numberStats.recent_logs.map((log, index) => {
+                  numberStats.recent_logs.slice((numbersPage - 1) * PAGE_SIZE, numbersPage * PAGE_SIZE).map((log, index) => {
                     const isPassed = Boolean(log.passed === true || log.passed === 1);
                     return (
                       <tr key={log.id || index} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
@@ -640,6 +690,11 @@ export default function AdminDashboard() {
               </tbody>
             </table>
           </div>
+          <Pagination
+            page={numbersPage}
+            pageCount={Math.max(1, Math.ceil(numberStats.recent_logs.length / PAGE_SIZE))}
+            onPageChange={setNumbersPage}
+          />
         </div>
       ) : (
         /* Urdu Assessment View */
@@ -678,7 +733,7 @@ export default function AdminDashboard() {
               </thead>
               <tbody>
                 {urduStats.recent_logs && urduStats.recent_logs.length > 0 ? (
-                  urduStats.recent_logs.map((log, index) => {
+                  urduStats.recent_logs.slice((urduPage - 1) * PAGE_SIZE, urduPage * PAGE_SIZE).map((log, index) => {
                     const isPassed = Boolean(log.passed === true || log.passed === 1);
                     return (
                       <tr key={log.id || index} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
@@ -755,6 +810,11 @@ export default function AdminDashboard() {
               </tbody>
             </table>
           </div>
+          <Pagination
+            page={urduPage}
+            pageCount={Math.max(1, Math.ceil(urduStats.recent_logs.length / PAGE_SIZE))}
+            onPageChange={setUrduPage}
+          />
         </div>
       )}
 

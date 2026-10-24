@@ -680,7 +680,7 @@ def get_all_users():
     days_left = max(0, 30 - now.day)
 
     if db is not None:
-        users = list(db.users.find({"role": {"$ne": "admin"}}))
+        users = list(db.users.find({"role": {"$ne": "admin"}}).sort("_id", -1))
         for u in users:
             u["id"] = str(u["_id"])
             u.pop("_id", None)
@@ -1518,7 +1518,7 @@ def get_stats():
         alpha_filter = {"alphabet": {"$nin": [v.upper() for v in excluded]}}
         total = db.session_logs.count_documents(alpha_filter)
         passed = db.session_logs.count_documents({**alpha_filter, "passed": 1})
-        recent = list(db.session_logs.find(alpha_filter).sort("_id", -1).limit(50))
+        recent = list(db.session_logs.find(alpha_filter).sort("_id", -1).limit(500))
         for r in recent: r.pop("_id", None)
         return {"total_sessions": total, "passed_sessions": passed, "pass_rate_pct": round((passed / max(total, 1)) * 100, 1), "avg_accuracy_pct": 92.5, "recent_logs": recent}
     else:
@@ -1528,7 +1528,7 @@ def get_stats():
         excluded_upper = [v.upper() for v in excluded]
         total = conn.execute(f"SELECT COUNT(*) FROM session_logs WHERE alphabet NOT IN ({placeholders})", excluded_upper).fetchone()[0]
         passed = conn.execute(f"SELECT COUNT(*) FROM session_logs WHERE passed=1 AND alphabet NOT IN ({placeholders})", excluded_upper).fetchone()[0]
-        recent = [dict(r) for r in conn.execute(f"SELECT * FROM session_logs WHERE alphabet NOT IN ({placeholders}) ORDER BY id DESC LIMIT 50", excluded_upper).fetchall()]
+        recent = [dict(r) for r in conn.execute(f"SELECT * FROM session_logs WHERE alphabet NOT IN ({placeholders}) ORDER BY id DESC LIMIT 500", excluded_upper).fetchall()]
         conn.close()
         return {"total_sessions": total, "passed_sessions": passed, "pass_rate_pct": round((passed / max(total, 1)) * 100, 1), "avg_accuracy_pct": 92.5, "recent_logs": recent}
 
@@ -1546,7 +1546,7 @@ def get_number_stats():
         num_filter = {"alphabet": {"$in": _NUMBER_ALPHABET_VALUES}}
         total = db.session_logs.count_documents(num_filter)
         passed = db.session_logs.count_documents({**num_filter, "passed": 1})
-        recent = list(db.session_logs.find(num_filter).sort("_id", -1).limit(50))
+        recent = list(db.session_logs.find(num_filter).sort("_id", -1).limit(500))
         for r in recent: r.pop("_id", None)
         return {"total_sessions": total, "passed_sessions": passed, "pass_rate_pct": round((passed / max(total, 1)) * 100, 1), "avg_accuracy_pct": 92.5, "recent_logs": recent}
     else:
@@ -1555,7 +1555,7 @@ def get_number_stats():
         placeholders = ",".join(["?"] * len(_NUMBER_ALPHABET_VALUES))
         total = conn.execute(f"SELECT COUNT(*) FROM session_logs WHERE alphabet IN ({placeholders})", _NUMBER_ALPHABET_VALUES).fetchone()[0]
         passed = conn.execute(f"SELECT COUNT(*) FROM session_logs WHERE passed=1 AND alphabet IN ({placeholders})", _NUMBER_ALPHABET_VALUES).fetchone()[0]
-        recent = [dict(r) for r in conn.execute(f"SELECT * FROM session_logs WHERE alphabet IN ({placeholders}) ORDER BY id DESC LIMIT 50", _NUMBER_ALPHABET_VALUES).fetchall()]
+        recent = [dict(r) for r in conn.execute(f"SELECT * FROM session_logs WHERE alphabet IN ({placeholders}) ORDER BY id DESC LIMIT 500", _NUMBER_ALPHABET_VALUES).fetchall()]
         conn.close()
         return {"total_sessions": total, "passed_sessions": passed, "pass_rate_pct": round((passed / max(total, 1)) * 100, 1), "avg_accuracy_pct": 92.5, "recent_logs": recent}
 
@@ -1566,7 +1566,7 @@ def get_urdu_stats():
         urdu_filter = {"alphabet": {"$in": urdu_upper}}
         total = db.session_logs.count_documents(urdu_filter)
         passed = db.session_logs.count_documents({**urdu_filter, "passed": 1})
-        recent = list(db.session_logs.find(urdu_filter).sort("_id", -1).limit(50))
+        recent = list(db.session_logs.find(urdu_filter).sort("_id", -1).limit(500))
         for r in recent: r.pop("_id", None)
         return {"total_sessions": total, "passed_sessions": passed, "pass_rate_pct": round((passed / max(total, 1)) * 100, 1), "avg_accuracy_pct": 92.5, "recent_logs": recent}
     else:
@@ -1575,7 +1575,7 @@ def get_urdu_stats():
         placeholders = ",".join(["?"] * len(urdu_upper))
         total = conn.execute(f"SELECT COUNT(*) FROM session_logs WHERE alphabet IN ({placeholders})", urdu_upper).fetchone()[0]
         passed = conn.execute(f"SELECT COUNT(*) FROM session_logs WHERE passed=1 AND alphabet IN ({placeholders})", urdu_upper).fetchone()[0]
-        recent = [dict(r) for r in conn.execute(f"SELECT * FROM session_logs WHERE alphabet IN ({placeholders}) ORDER BY id DESC LIMIT 50", urdu_upper).fetchall()]
+        recent = [dict(r) for r in conn.execute(f"SELECT * FROM session_logs WHERE alphabet IN ({placeholders}) ORDER BY id DESC LIMIT 500", urdu_upper).fetchall()]
         conn.close()
         return {"total_sessions": total, "passed_sessions": passed, "pass_rate_pct": round((passed / max(total, 1)) * 100, 1), "avg_accuracy_pct": 92.5, "recent_logs": recent}
 
