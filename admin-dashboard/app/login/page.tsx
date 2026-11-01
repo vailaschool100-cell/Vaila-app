@@ -173,7 +173,7 @@ export default function AdminLogin() {
               boxShadow: '0 8px 20px rgba(67, 97, 238, 0.4)'
             }}
           >
-            {loading ? 'Logging in...' : 'Login to Admin Dashboard ➔'}
+            {loading ? 'Logging in...' : 'Login ➔'}
           </button>
         </form>
       </div>

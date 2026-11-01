@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Activity, Award, Volume2, Users, CheckCircle2, AlertCircle, RefreshCw,
+  Users, CheckCircle2, AlertCircle, RefreshCw,
   Eye, Check, X, LogOut, ChevronLeft, ChevronRight, Search, Trash2, Edit2, UserPlus
 } from 'lucide-react';
 
@@ -57,7 +57,8 @@ interface StudentEvaluations {
 // ─── Shared: Student Evaluations Panel ────────────────────────────────────────
 function StudentEvalsPanel({
   students, apiUrl, searchQuery, setSearchQuery, studentsPage, setStudentsPage,
-  selectedStudent, setSelectedStudent, studentEvals, studentEvalsLoading, studentEvalsTab, setStudentEvalsTab
+  selectedStudent, setSelectedStudent, studentEvals, studentEvalsLoading, studentEvalsTab, setStudentEvalsTab,
+  evalsPage, setEvalsPage
 }: {
   students: StudentListItem[];
   apiUrl: string;
@@ -71,6 +72,8 @@ function StudentEvalsPanel({
   studentEvalsLoading: boolean;
   studentEvalsTab: 'phonics' | 'numbers' | 'urdu';
   setStudentEvalsTab: (v: 'phonics' | 'numbers' | 'urdu') => void;
+  evalsPage: number;
+  setEvalsPage: (v: number) => void;
 }) {
   const filtered = students.filter(s => s.username.toLowerCase().includes(searchQuery.toLowerCase()));
   const pageCount = Math.max(1, Math.ceil(filtered.length / SIDEBAR_PAGE_SIZE));
@@ -168,51 +171,58 @@ function StudentEvalsPanel({
 
             {currentLogs.length === 0 ? (
               <div style={{ color: '#64748b', textAlign: 'center', padding: '40px' }}>No {studentEvalsTab} evaluations recorded yet.</div>
-            ) : (
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', color: '#cbd5e1', fontSize: '13px' }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid #334155' }}>
-                      <th style={{ padding: '10px 12px', textAlign: 'left' }}>Letter/Number</th>
-                      <th style={{ padding: '10px 12px', textAlign: 'left' }}>Spoken</th>
-                      <th style={{ padding: '10px 12px', textAlign: 'left' }}>Accuracy</th>
-                      <th style={{ padding: '10px 12px', textAlign: 'left' }}>Result</th>
-                      <th style={{ padding: '10px 12px', textAlign: 'left' }}>Platform</th>
-                      <th style={{ padding: '10px 12px', textAlign: 'left' }}>Date & Time</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {currentLogs.slice(0, 100).map((log, i) => {
-                      const isPassed = Boolean(log.passed === true || log.passed === 1);
-                      return (
-                        <tr key={log.id || i} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                          <td style={{ padding: '10px 12px' }}>
-                            <span style={{ padding: '3px 10px', borderRadius: '8px', backgroundColor: studentEvalsTab === 'phonics' ? 'rgba(99,102,241,0.2)' : studentEvalsTab === 'numbers' ? 'rgba(16,185,129,0.2)' : 'rgba(168,85,247,0.2)', color: studentEvalsTab === 'phonics' ? '#818cf8' : studentEvalsTab === 'numbers' ? '#34d399' : '#c084fc', fontWeight: 800, fontSize: '13px', border: `1px solid ${studentEvalsTab === 'phonics' ? 'rgba(99,102,241,0.4)' : studentEvalsTab === 'numbers' ? 'rgba(16,185,129,0.4)' : 'rgba(168,85,247,0.4)'}` }}>
-                              {log.alphabet || '-'}
-                            </span>
-                          </td>
-                          <td style={{ padding: '10px 12px', fontStyle: 'italic', color: '#e2e8f0' }}>"{log.spoken_sound || log.whisper_transcription || '-'}"</td>
-                          <td style={{ padding: '10px 12px', fontWeight: 700 }}>
-                            <span style={{ color: log.accuracy >= 90 ? '#34d399' : log.accuracy >= 60 ? '#fbbf24' : '#f87171' }}>{log.accuracy}%</span>
-                          </td>
-                          <td style={{ padding: '10px 12px' }}>
-                            <span style={{ padding: '3px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 700, backgroundColor: isPassed ? 'rgba(16,185,129,0.2)' : 'rgba(244,63,94,0.2)', color: isPassed ? '#34d399' : '#f87171', border: `1px solid ${isPassed ? '#10b981' : '#f43f5e'}`, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                              {isPassed ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />} {isPassed ? 'Passed' : 'Needs Practice'}
-                            </span>
-                          </td>
-                          <td style={{ padding: '10px 12px' }}>
-                            <span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, backgroundColor: log.source === 'web' ? 'rgba(6,182,212,0.15)' : 'rgba(168,85,247,0.15)', color: log.source === 'web' ? '#38bdf8' : '#c084fc' }}>
-                              {log.source === 'web' ? '🌐 Web' : '📱 App'}
-                            </span>
-                          </td>
-                          <td style={{ padding: '10px 12px', color: '#94a3b8', fontSize: '12px' }}>{log.timestamp || '-'}</td>
+            ) : (() => {
+              const totalPages = Math.max(1, Math.ceil(currentLogs.length / PAGE_SIZE));
+              const pageLogs = currentLogs.slice((evalsPage - 1) * PAGE_SIZE, evalsPage * PAGE_SIZE);
+              return (
+                <>
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', color: '#cbd5e1', fontSize: '13px' }}>
+                      <thead>
+                        <tr style={{ borderBottom: '1px solid #334155' }}>
+                          <th style={{ padding: '10px 12px', textAlign: 'left' }}>Letter/Number</th>
+                          <th style={{ padding: '10px 12px', textAlign: 'left' }}>Spoken</th>
+                          <th style={{ padding: '10px 12px', textAlign: 'left' }}>Accuracy</th>
+                          <th style={{ padding: '10px 12px', textAlign: 'left' }}>Result</th>
+                          <th style={{ padding: '10px 12px', textAlign: 'left' }}>Platform</th>
+                          <th style={{ padding: '10px 12px', textAlign: 'left' }}>Date & Time</th>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                      </thead>
+                      <tbody>
+                        {pageLogs.map((log, i) => {
+                          const isPassed = Boolean(log.passed === true || log.passed === 1);
+                          return (
+                            <tr key={log.id || i} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                              <td style={{ padding: '10px 12px' }}>
+                                <span style={{ padding: '3px 10px', borderRadius: '8px', backgroundColor: studentEvalsTab === 'phonics' ? 'rgba(99,102,241,0.2)' : studentEvalsTab === 'numbers' ? 'rgba(16,185,129,0.2)' : 'rgba(168,85,247,0.2)', color: studentEvalsTab === 'phonics' ? '#818cf8' : studentEvalsTab === 'numbers' ? '#34d399' : '#c084fc', fontWeight: 800, fontSize: '13px', border: `1px solid ${studentEvalsTab === 'phonics' ? 'rgba(99,102,241,0.4)' : studentEvalsTab === 'numbers' ? 'rgba(16,185,129,0.4)' : 'rgba(168,85,247,0.4)'}` }}>
+                                  {log.alphabet || '-'}
+                                </span>
+                              </td>
+                              <td style={{ padding: '10px 12px', fontStyle: 'italic', color: '#e2e8f0' }}>"{log.spoken_sound || log.whisper_transcription || '-'}"</td>
+                              <td style={{ padding: '10px 12px', fontWeight: 700 }}>
+                                <span style={{ color: log.accuracy >= 90 ? '#34d399' : log.accuracy >= 60 ? '#fbbf24' : '#f87171' }}>{log.accuracy}%</span>
+                              </td>
+                              <td style={{ padding: '10px 12px' }}>
+                                <span style={{ padding: '3px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 700, backgroundColor: isPassed ? 'rgba(16,185,129,0.2)' : 'rgba(244,63,94,0.2)', color: isPassed ? '#34d399' : '#f87171', border: `1px solid ${isPassed ? '#10b981' : '#f43f5e'}`, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                  {isPassed ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />} {isPassed ? 'Passed' : 'Needs Practice'}
+                                </span>
+                              </td>
+                              <td style={{ padding: '10px 12px' }}>
+                                <span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, backgroundColor: log.source === 'web' ? 'rgba(6,182,212,0.15)' : 'rgba(168,85,247,0.15)', color: log.source === 'web' ? '#38bdf8' : '#c084fc' }}>
+                                  {log.source === 'web' ? '🌐 Web' : '📱 App'}
+                                </span>
+                              </td>
+                              <td style={{ padding: '10px 12px', color: '#94a3b8', fontSize: '12px' }}>{log.timestamp || '-'}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                  <Pagination page={evalsPage} pageCount={totalPages} onPageChange={setEvalsPage} />
+                </>
+              );
+            })()}
           </>
         )}
       </div>
@@ -227,17 +237,11 @@ export default function AdminDashboard() {
 
   const [users, setUsers] = useState<UserItem[]>([]);
   const [payments, setPayments] = useState<PaymentRequest[]>([]);
-  const [stats, setStats] = useState({ total_sessions: 0, passed_sessions: 0, pass_rate_pct: 0, avg_accuracy_pct: 0, recent_logs: [] as SessionLog[] });
-  const [numberStats, setNumberStats] = useState({ total_sessions: 0, passed_sessions: 0, pass_rate_pct: 0, avg_accuracy_pct: 0, recent_logs: [] as SessionLog[] });
-  const [urduStats, setUrduStats] = useState({ total_sessions: 0, passed_sessions: 0, pass_rate_pct: 0, avg_accuracy_pct: 0, recent_logs: [] as SessionLog[] });
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'users' | 'analytics' | 'numbers' | 'urdu' | 'student-evals' | 'teachers'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'student-evals' | 'teachers'>('users');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const [usersPage, setUsersPage] = useState(1);
-  const [analyticsPage, setAnalyticsPage] = useState(1);
-  const [numbersPage, setNumbersPage] = useState(1);
-  const [urduPage, setUrduPage] = useState(1);
 
   // Students sidebar state
   const [students, setStudents] = useState<StudentListItem[]>([]);
@@ -247,6 +251,7 @@ export default function AdminDashboard() {
   const [studentEvals, setStudentEvals] = useState<StudentEvaluations | null>(null);
   const [studentEvalsLoading, setStudentEvalsLoading] = useState(false);
   const [studentEvalsTab, setStudentEvalsTab] = useState<'phonics' | 'numbers' | 'urdu'>('phonics');
+  const [evalsPage, setEvalsPage] = useState(1);
 
   // Teacher management state
   const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -271,16 +276,8 @@ export default function AdminDashboard() {
   const fetchAdminData = useCallback(async () => {
     setLoading(true);
     try {
-      const [userRes, statsRes, numStatsRes, urduStatsRes] = await Promise.all([
-        fetch(`${API_URL}/api/admin/users`),
-        fetch(`${API_URL}/api/stats`),
-        fetch(`${API_URL}/api/number-stats`),
-        fetch(`${API_URL}/api/urdu-stats`)
-      ]);
+      const userRes = await fetch(`${API_URL}/api/admin/users`);
       if (userRes.ok) { const d = await userRes.json(); setUsers(d.users || []); setPayments(d.payments || []); }
-      if (statsRes.ok) setStats(await statsRes.json());
-      if (numStatsRes.ok) setNumberStats(await numStatsRes.json());
-      if (urduStatsRes.ok) setUrduStats(await urduStatsRes.json());
     } catch (e) { console.log('Error fetching admin data:', e); }
     finally { setLoading(false); }
   }, [API_URL]);
@@ -312,6 +309,8 @@ export default function AdminDashboard() {
       return () => clearInterval(interval);
     }
   }, [userRole, fetchAdminData, fetchStudents, fetchTeachers]);
+
+  useEffect(() => { setEvalsPage(1); }, [selectedStudent, studentEvalsTab]);
 
   useEffect(() => {
     if (!selectedStudent) return;
@@ -401,7 +400,8 @@ export default function AdminDashboard() {
 
   const sharedEvalsProps = {
     students, apiUrl: API_URL, searchQuery, setSearchQuery, studentsPage, setStudentsPage,
-    selectedStudent, setSelectedStudent, studentEvals, studentEvalsLoading, studentEvalsTab, setStudentEvalsTab
+    selectedStudent, setSelectedStudent, studentEvals, studentEvalsLoading, studentEvalsTab, setStudentEvalsTab,
+    evalsPage, setEvalsPage
   };
 
   // ─── Teacher View ──────────────────────────────────────────────────────────
@@ -453,9 +453,6 @@ export default function AdminDashboard() {
       <div style={{ display: 'flex', gap: '12px', margin: '24px 0 16px 0', flexWrap: 'wrap' }}>
         {[
           { key: 'users', label: `👥 User Approvals & Payments (${users.filter(u => !u.is_approved).length} Pending)`, color: '#4361ee' },
-          { key: 'analytics', label: '📊 Phonics Analytics', color: '#4361ee' },
-          { key: 'numbers', label: `🔢 Numbers (${numberStats.total_sessions})`, color: '#10b981' },
-          { key: 'urdu', label: `🕌 Urdu (${urduStats.total_sessions})`, color: '#a855f7' },
           { key: 'student-evals', label: '🎓 Student Evaluations', color: '#06b6d4' },
           { key: 'teachers', label: `👨‍🏫 Manage Teachers (${teachers.length})`, color: '#f59e0b' },
         ].map(tab => (
@@ -520,104 +517,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {activeTab === 'analytics' && (
-        <div style={{ backgroundColor: '#1e293b', borderRadius: '20px', padding: '24px', border: '1px solid rgba(255,255,255,0.05)' }}>
-          <div className="stats-grid" style={{ marginBottom: '24px' }}>
-            <div className="stat-card"><div className="stat-header"><span>Total Attempts</span><Activity size={18} color="#06b6d4" /></div><div className="stat-value">{stats.total_sessions}</div></div>
-            <div className="stat-card"><div className="stat-header"><span>Passed Attempts</span><CheckCircle2 size={18} color="#10b981" /></div><div className="stat-value" style={{ color: '#10b981' }}>{stats.passed_sessions}</div></div>
-            <div className="stat-card"><div className="stat-header"><span>Pass Rate</span><Award size={18} color="#a855f7" /></div><div className="stat-value" style={{ color: '#a855f7' }}>{stats.pass_rate_pct}%</div></div>
-          </div>
-          <h2 style={{ color: '#fff', fontSize: '18px', marginBottom: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}><Volume2 size={20} color="#06b6d4" /> Phonics Practice Session History</h2>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', color: '#cbd5e1', fontSize: '14px' }}>
-              <thead><tr style={{ borderBottom: '1px solid #334155', textAlign: 'left' }}><th style={{ padding: '12px' }}>Learner Name</th><th style={{ padding: '12px' }}>Alphabet</th><th style={{ padding: '12px' }}>Spoken Sound</th><th style={{ padding: '12px' }}>Accuracy %</th><th style={{ padding: '12px' }}>Evaluation Result</th><th style={{ padding: '12px' }}>Platform</th><th style={{ padding: '12px' }}>Date & Time</th></tr></thead>
-              <tbody>
-                {stats.recent_logs?.length > 0 ? stats.recent_logs.slice((analyticsPage - 1) * PAGE_SIZE, analyticsPage * PAGE_SIZE).map((log, index) => {
-                  const isPassed = Boolean(log.passed === true || log.passed === 1);
-                  return (
-                    <tr key={log.id || index} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                      <td style={{ padding: '14px 12px' }}><div style={{ fontWeight: 700, color: '#60a5fa', display: 'flex', alignItems: 'center', gap: '6px' }}><Users size={16} /> {log.student || 'Learner'}</div></td>
-                      <td style={{ padding: '14px 12px' }}><span style={{ padding: '4px 10px', borderRadius: '8px', backgroundColor: 'rgba(99,102,241,0.2)', color: '#818cf8', fontWeight: 800, fontSize: '14px', border: '1px solid rgba(99,102,241,0.4)' }}>{log.alphabet?.toUpperCase() || '-'}</span></td>
-                      <td style={{ padding: '14px 12px', fontStyle: 'italic', color: '#e2e8f0' }}>"{log.spoken_sound || log.whisper_transcription || '-'}"</td>
-                      <td style={{ padding: '14px 12px', fontWeight: 700 }}><span style={{ color: log.accuracy >= 90 ? '#34d399' : log.accuracy >= 60 ? '#fbbf24' : '#f87171' }}>{log.accuracy}%</span></td>
-                      <td style={{ padding: '14px 12px' }}><span style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 700, backgroundColor: isPassed ? 'rgba(16,185,129,0.2)' : 'rgba(244,63,94,0.2)', color: isPassed ? '#34d399' : '#f87171', border: `1px solid ${isPassed ? '#10b981' : '#f43f5e'}`, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>{isPassed ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}{isPassed ? 'Passed' : 'Needs Practice'}</span></td>
-                      <td style={{ padding: '14px 12px' }}><span style={{ padding: '4px 10px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, backgroundColor: log.source === 'web' ? 'rgba(6,182,212,0.15)' : 'rgba(168,85,247,0.15)', color: log.source === 'web' ? '#38bdf8' : '#c084fc' }}>{log.source === 'web' ? '🌐 Web' : '📱 App'}</span></td>
-                      <td style={{ padding: '14px 12px', color: '#94a3b8', fontSize: '13px' }}>{log.timestamp || '-'}</td>
-                    </tr>
-                  );
-                }) : <tr><td colSpan={7} style={{ textAlign: 'center', padding: '32px', color: '#64748b' }}>No learner practice records logged yet.</td></tr>}
-              </tbody>
-            </table>
-          </div>
-          <Pagination page={analyticsPage} pageCount={Math.max(1, Math.ceil(stats.recent_logs.length / PAGE_SIZE))} onPageChange={setAnalyticsPage} />
-        </div>
-      )}
 
-      {activeTab === 'numbers' && (
-        <div style={{ backgroundColor: '#1e293b', borderRadius: '20px', padding: '24px', border: '1px solid rgba(255,255,255,0.05)' }}>
-          <div className="stats-grid" style={{ marginBottom: '24px' }}>
-            <div className="stat-card"><div className="stat-header"><span>Number Attempts</span><Activity size={18} color="#10b981" /></div><div className="stat-value" style={{ color: '#10b981' }}>{numberStats.total_sessions}</div></div>
-            <div className="stat-card"><div className="stat-header"><span>Numbers Passed</span><CheckCircle2 size={18} color="#34d399" /></div><div className="stat-value" style={{ color: '#34d399' }}>{numberStats.passed_sessions}</div></div>
-            <div className="stat-card"><div className="stat-header"><span>Pass Rate</span><Award size={18} color="#06b6d4" /></div><div className="stat-value" style={{ color: '#06b6d4' }}>{numberStats.pass_rate_pct}%</div></div>
-          </div>
-          <h2 style={{ color: '#fff', fontSize: '18px', marginBottom: '16px', fontWeight: 700 }}>🔢 Number Speaking Practice History</h2>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', color: '#cbd5e1', fontSize: '14px' }}>
-              <thead><tr style={{ borderBottom: '1px solid #334155', textAlign: 'left' }}><th style={{ padding: '12px' }}>Learner Name</th><th style={{ padding: '12px' }}>Number</th><th style={{ padding: '12px' }}>Spoken Sound</th><th style={{ padding: '12px' }}>Accuracy %</th><th style={{ padding: '12px' }}>Result</th><th style={{ padding: '12px' }}>Platform</th><th style={{ padding: '12px' }}>Date & Time</th></tr></thead>
-              <tbody>
-                {numberStats.recent_logs?.length > 0 ? numberStats.recent_logs.slice((numbersPage - 1) * PAGE_SIZE, numbersPage * PAGE_SIZE).map((log, index) => {
-                  const isPassed = Boolean(log.passed === true || log.passed === 1);
-                  return (
-                    <tr key={log.id || index} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                      <td style={{ padding: '14px 12px' }}><div style={{ fontWeight: 700, color: '#60a5fa', display: 'flex', alignItems: 'center', gap: '6px' }}><Users size={16} /> {log.student || 'Learner'}</div></td>
-                      <td style={{ padding: '14px 12px' }}><span style={{ padding: '4px 10px', borderRadius: '8px', backgroundColor: 'rgba(16,185,129,0.2)', color: '#34d399', fontWeight: 800, fontSize: '14px', border: '1px solid rgba(16,185,129,0.4)' }}>{log.alphabet || '-'}</span></td>
-                      <td style={{ padding: '14px 12px', fontStyle: 'italic', color: '#e2e8f0' }}>"{log.spoken_sound || log.whisper_transcription || '-'}"</td>
-                      <td style={{ padding: '14px 12px', fontWeight: 700 }}><span style={{ color: log.accuracy >= 90 ? '#34d399' : log.accuracy >= 60 ? '#fbbf24' : '#f87171' }}>{log.accuracy}%</span></td>
-                      <td style={{ padding: '14px 12px' }}><span style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 700, backgroundColor: isPassed ? 'rgba(16,185,129,0.2)' : 'rgba(244,63,94,0.2)', color: isPassed ? '#34d399' : '#f87171', border: `1px solid ${isPassed ? '#10b981' : '#f43f5e'}`, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>{isPassed ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}{isPassed ? 'Passed' : 'Needs Practice'}</span></td>
-                      <td style={{ padding: '14px 12px' }}><span style={{ padding: '4px 10px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, backgroundColor: log.source === 'web' ? 'rgba(6,182,212,0.15)' : 'rgba(168,85,247,0.15)', color: log.source === 'web' ? '#38bdf8' : '#c084fc' }}>{log.source === 'web' ? '🌐 Web' : '📱 App'}</span></td>
-                      <td style={{ padding: '14px 12px', color: '#94a3b8', fontSize: '13px' }}>{log.timestamp || '-'}</td>
-                    </tr>
-                  );
-                }) : <tr><td colSpan={7} style={{ textAlign: 'center', padding: '32px', color: '#64748b' }}>No number practice sessions recorded yet.</td></tr>}
-              </tbody>
-            </table>
-          </div>
-          <Pagination page={numbersPage} pageCount={Math.max(1, Math.ceil(numberStats.recent_logs.length / PAGE_SIZE))} onPageChange={setNumbersPage} />
-        </div>
-      )}
-
-      {activeTab === 'urdu' && (
-        <div style={{ backgroundColor: '#1e293b', borderRadius: '20px', padding: '24px', border: '1px solid rgba(255,255,255,0.05)' }}>
-          <div className="stats-grid" style={{ marginBottom: '24px' }}>
-            <div className="stat-card"><div className="stat-header"><span>Urdu Attempts</span><Activity size={18} color="#a855f7" /></div><div className="stat-value" style={{ color: '#a855f7' }}>{urduStats.total_sessions}</div></div>
-            <div className="stat-card"><div className="stat-header"><span>Urdu Passed</span><CheckCircle2 size={18} color="#34d399" /></div><div className="stat-value" style={{ color: '#34d399' }}>{urduStats.passed_sessions}</div></div>
-            <div className="stat-card"><div className="stat-header"><span>Pass Rate</span><Award size={18} color="#c084fc" /></div><div className="stat-value" style={{ color: '#c084fc' }}>{urduStats.pass_rate_pct}%</div></div>
-          </div>
-          <h2 style={{ color: '#fff', fontSize: '18px', marginBottom: '16px', fontWeight: 700 }}>🕌 Urdu Speaking Practice History</h2>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', color: '#cbd5e1', fontSize: '14px' }}>
-              <thead><tr style={{ borderBottom: '1px solid #334155', textAlign: 'left' }}><th style={{ padding: '12px' }}>Learner Name</th><th style={{ padding: '12px' }}>Urdu Word</th><th style={{ padding: '12px' }}>Spoken Sound</th><th style={{ padding: '12px' }}>Accuracy %</th><th style={{ padding: '12px' }}>Result</th><th style={{ padding: '12px' }}>Platform</th><th style={{ padding: '12px' }}>Date & Time</th></tr></thead>
-              <tbody>
-                {urduStats.recent_logs?.length > 0 ? urduStats.recent_logs.slice((urduPage - 1) * PAGE_SIZE, urduPage * PAGE_SIZE).map((log, index) => {
-                  const isPassed = Boolean(log.passed === true || log.passed === 1);
-                  return (
-                    <tr key={log.id || index} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                      <td style={{ padding: '14px 12px' }}><div style={{ fontWeight: 700, color: '#60a5fa', display: 'flex', alignItems: 'center', gap: '6px' }}><Users size={16} /> {log.student || 'Learner'}</div></td>
-                      <td style={{ padding: '14px 12px' }}><span style={{ padding: '4px 10px', borderRadius: '8px', backgroundColor: 'rgba(168,85,247,0.2)', color: '#c084fc', fontWeight: 800, fontSize: '14px', border: '1px solid rgba(168,85,247,0.4)' }}>{log.alphabet || '-'}</span></td>
-                      <td style={{ padding: '14px 12px', fontStyle: 'italic', color: '#e2e8f0' }}>"{log.spoken_sound || log.whisper_transcription || '-'}"</td>
-                      <td style={{ padding: '14px 12px', fontWeight: 700 }}><span style={{ color: log.accuracy >= 90 ? '#34d399' : log.accuracy >= 60 ? '#fbbf24' : '#f87171' }}>{log.accuracy}%</span></td>
-                      <td style={{ padding: '14px 12px' }}><span style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 700, backgroundColor: isPassed ? 'rgba(16,185,129,0.2)' : 'rgba(244,63,94,0.2)', color: isPassed ? '#34d399' : '#f87171', border: `1px solid ${isPassed ? '#10b981' : '#f43f5e'}`, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>{isPassed ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}{isPassed ? 'Passed' : 'Needs Practice'}</span></td>
-                      <td style={{ padding: '14px 12px' }}><span style={{ padding: '4px 10px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, backgroundColor: log.source === 'web' ? 'rgba(6,182,212,0.15)' : 'rgba(168,85,247,0.15)', color: log.source === 'web' ? '#38bdf8' : '#c084fc' }}>{log.source === 'web' ? '🌐 Web' : '📱 App'}</span></td>
-                      <td style={{ padding: '14px 12px', color: '#94a3b8', fontSize: '13px' }}>{log.timestamp || '-'}</td>
-                    </tr>
-                  );
-                }) : <tr><td colSpan={7} style={{ textAlign: 'center', padding: '32px', color: '#64748b' }}>No Urdu practice sessions recorded yet.</td></tr>}
-              </tbody>
-            </table>
-          </div>
-          <Pagination page={urduPage} pageCount={Math.max(1, Math.ceil(urduStats.recent_logs.length / PAGE_SIZE))} onPageChange={setUrduPage} />
-        </div>
-      )}
 
       {activeTab === 'student-evals' && (
         <StudentEvalsPanel {...sharedEvalsProps} />
