@@ -57,7 +57,7 @@ export default function AdminLogin() {
       padding: '20px',
       fontFamily: 'Inter, sans-serif'
     }}>
-      <div style={{
+      <div className="login-card" style={{
         width: '100%',
         maxWidth: '420px',
         backgroundColor: '#1e293b',

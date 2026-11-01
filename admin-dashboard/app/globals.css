@@ -144,6 +144,131 @@ body {
   }
 }
 
+/* ── Responsive Overrides ─────────────────────────────────────────── */
+
+/* Student evaluations: sidebar stacks above detail on mobile */
+.evals-panel-wrap {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+.evals-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+}
+.evals-detail {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Teacher add-form row */
+.teacher-form-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+/* Tab row */
+.tab-row {
+  display: flex;
+  gap: 10px;
+  margin: 24px 0 16px 0;
+  flex-wrap: wrap;
+}
+
+/* Header action buttons */
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 1rem 0.75rem;
+  }
+
+  /* Header: stack logo text and shrink */
+  .header-nav {
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+  }
+  .title-text h1 {
+    font-size: 1.1rem;
+  }
+  .title-text p {
+    display: none;
+  }
+  .header-actions {
+    gap: 8px;
+  }
+  .header-actions button {
+    padding: 0.45rem 0.8rem !important;
+    font-size: 12px !important;
+  }
+
+  /* Tabs: smaller text */
+  .tab-row button {
+    padding: 10px 14px !important;
+    font-size: 12px !important;
+  }
+
+  /* Sidebar stacks on mobile */
+  .evals-panel-wrap {
+    flex-direction: column;
+  }
+  .evals-sidebar {
+    width: 100%;
+  }
+
+  /* Tables scroll on mobile */
+  .table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Teacher form: full-width fields */
+  .teacher-form-row > div {
+    flex: 1 1 100% !important;
+    min-width: unset !important;
+  }
+  .teacher-form-row > button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Teacher inline edit */
+  .teacher-edit-row {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+  .teacher-edit-row input {
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .title-text h1 {
+    font-size: 0.95rem;
+  }
+  .logo-badge {
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+  }
+  .stat-value {
+    font-size: 1.6rem;
+  }
+  .login-card {
+    padding: 28px 18px !important;
+    border-radius: 16px !important;
+  }
+}
+
 .card-panel {
   background: var(--bg-card);
   backdrop-filter: blur(12px);

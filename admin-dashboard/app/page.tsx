@@ -84,9 +84,9 @@ function StudentEvalsPanel({
     : [];
 
   return (
-    <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+    <div className="evals-panel-wrap">
       {/* Sidebar */}
-      <div style={{ width: '260px', flexShrink: 0, backgroundColor: '#1e293b', borderRadius: '16px', padding: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+      <div className="evals-sidebar" style={{ backgroundColor: '#1e293b', borderRadius: '16px', padding: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
         <div style={{ color: '#fff', fontWeight: 700, fontSize: '15px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
           <Users size={16} color="#60a5fa" /> Students
         </div>
@@ -134,7 +134,7 @@ function StudentEvalsPanel({
       </div>
 
       {/* Detail Panel */}
-      <div style={{ flex: 1, backgroundColor: '#1e293b', borderRadius: '16px', padding: '24px', border: '1px solid rgba(255,255,255,0.05)', minHeight: '400px' }}>
+      <div className="evals-detail" style={{ backgroundColor: '#1e293b', borderRadius: '16px', padding: '24px', border: '1px solid rgba(255,255,255,0.05)', minHeight: '400px' }}>
         {!selectedStudent ? (
           <div style={{ color: '#64748b', textAlign: 'center', paddingTop: '80px', fontSize: '15px' }}>
             ← Select a student from the list to view their evaluations
@@ -417,9 +417,11 @@ export default function AdminDashboard() {
               <p>Welcome, {teacherUsername} — Student Evaluations</p>
             </div>
           </div>
-          <button onClick={handleLogout} style={{ background: 'rgba(244,63,94,0.15)', border: '1px solid #f43f5e', color: '#fda4af', padding: '0.6rem 1.2rem', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 600 }}>
-            <LogOut size={16} /> Logout
-          </button>
+          <div className="header-actions">
+            <button onClick={handleLogout} style={{ background: 'rgba(244,63,94,0.15)', border: '1px solid #f43f5e', color: '#fda4af', padding: '0.6rem 1.2rem', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 600 }}>
+              <LogOut size={16} /> Logout
+            </button>
+          </div>
         </header>
         <div style={{ marginTop: '24px' }}>
           <StudentEvalsPanel {...sharedEvalsProps} />
@@ -439,7 +441,7 @@ export default function AdminDashboard() {
             <p>Registration Approval, Monthly Fee Alerts & Analytics</p>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div className="header-actions">
           <button onClick={fetchAdminData} style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', padding: '0.6rem 1.2rem', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 600 }}>
             <RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> Refresh
           </button>
@@ -450,11 +452,11 @@ export default function AdminDashboard() {
       </header>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '12px', margin: '24px 0 16px 0', flexWrap: 'wrap' }}>
+      <div className="tab-row">
         {[
-          { key: 'users', label: `👥 User Approvals & Payments (${users.filter(u => !u.is_approved).length} Pending)`, color: '#4361ee' },
+          { key: 'users', label: `👥 Approvals (${users.filter(u => !u.is_approved).length} Pending)`, color: '#4361ee' },
           { key: 'student-evals', label: '🎓 Student Evaluations', color: '#06b6d4' },
-          { key: 'teachers', label: `👨‍🏫 Manage Teachers (${teachers.length})`, color: '#f59e0b' },
+          { key: 'teachers', label: `👨‍🏫 Teachers (${teachers.length})`, color: '#f59e0b' },
         ].map(tab => (
           <button key={tab.key} onClick={() => setActiveTab(tab.key as typeof activeTab)}
             style={{ padding: '12px 20px', borderRadius: '12px', border: 'none', backgroundColor: activeTab === tab.key ? tab.color : '#1e293b', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: '13px' }}>
@@ -530,7 +532,7 @@ export default function AdminDashboard() {
             <h2 style={{ color: '#fff', fontSize: '18px', marginBottom: '20px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
               <UserPlus size={20} color="#f59e0b" /> Add New Teacher
             </h2>
-            <form onSubmit={handleAddTeacher} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+            <form onSubmit={handleAddTeacher} className="teacher-form-row">
               {[
                 { label: 'Username', key: 'username', type: 'text', placeholder: 'e.g. MissAyesha' },
                 { label: 'Email', key: 'email', type: 'email', placeholder: 'teacher@school.com' },
@@ -585,7 +587,7 @@ export default function AdminDashboard() {
                       {editingTeacher === t.username && (
                         <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', backgroundColor: 'rgba(99,102,241,0.05)' }}>
                           <td colSpan={4} style={{ padding: '16px 12px' }}>
-                            <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                            <div className="teacher-form-row teacher-edit-row" style={{ alignItems: 'flex-end' }}>
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                                 <label style={{ color: '#94a3b8', fontSize: '12px', fontWeight: 600 }}>New Email (optional)</label>
                                 <input type="email" placeholder="Leave blank to keep current" value={editTeacherForm.new_email}

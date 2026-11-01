@@ -4,6 +4,7 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'Vaila Admin - Pronunciation Analytics & Dashboard',
   description: 'Admin portal for monitoring speech therapy and pronunciation practice for partially deaf children.',
+  viewport: 'width=device-width, initial-scale=1',
 };
 
 export default function RootLayout({
