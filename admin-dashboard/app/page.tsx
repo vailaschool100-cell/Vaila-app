@@ -195,10 +195,10 @@ function StudentEvalsPanel({
                             <tr key={log.id || i} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                               <td style={{ padding: '10px 12px' }}>
                                 <span style={{ padding: '3px 10px', borderRadius: '8px', backgroundColor: studentEvalsTab === 'phonics' ? 'rgba(99,102,241,0.2)' : studentEvalsTab === 'numbers' ? 'rgba(16,185,129,0.2)' : 'rgba(168,85,247,0.2)', color: studentEvalsTab === 'phonics' ? '#818cf8' : studentEvalsTab === 'numbers' ? '#34d399' : '#c084fc', fontWeight: 800, fontSize: '13px', border: `1px solid ${studentEvalsTab === 'phonics' ? 'rgba(99,102,241,0.4)' : studentEvalsTab === 'numbers' ? 'rgba(16,185,129,0.4)' : 'rgba(168,85,247,0.4)'}` }}>
-                                  {log.alphabet || '-'}
+                                  {log.alphabet || ''}
                                 </span>
                               </td>
-                              <td style={{ padding: '10px 12px', fontStyle: 'italic', color: '#e2e8f0' }}>"{log.spoken_sound || log.whisper_transcription || '-'}"</td>
+                              <td style={{ padding: '10px 12px', fontStyle: 'italic', color: '#e2e8f0' }}>"{log.spoken_sound || log.whisper_transcription || ''}"</td>
                               <td style={{ padding: '10px 12px', fontWeight: 700 }}>
                                 <span style={{ color: log.accuracy >= 90 ? '#34d399' : log.accuracy >= 60 ? '#fbbf24' : '#f87171' }}>{log.accuracy}%</span>
                               </td>
@@ -212,7 +212,7 @@ function StudentEvalsPanel({
                                   {log.source === 'web' ? '🌐 Web' : '📱 App'}
                                 </span>
                               </td>
-                              <td style={{ padding: '10px 12px', color: '#94a3b8', fontSize: '12px' }}>{log.timestamp || '-'}</td>
+                              <td style={{ padding: '10px 12px', color: '#94a3b8', fontSize: '12px' }}>{log.timestamp || ''}</td>
                             </tr>
                           );
                         })}
@@ -487,7 +487,7 @@ export default function AdminDashboard() {
                       <div style={{ fontWeight: 700, color: '#fff' }}>{u.username}</div>
                       <div style={{ fontSize: '12px', color: '#94a3b8' }}>{u.email}</div>
                     </td>
-                    <td style={{ padding: '16px 12px' }}><div style={{ fontWeight: 600, color: '#fff' }}>{u.created_at || u.registration_month || 'N/A'}</div></td>
+                    <td style={{ padding: '16px 12px' }}><div style={{ fontWeight: 600, color: '#fff' }}>{u.created_at || u.registration_month || ''}</div></td>
                     <td style={{ padding: '16px 12px' }}>
                       {u.registration_screenshot ? (
                         <button onClick={() => setSelectedImage(`${API_URL}${u.registration_screenshot}`)}
@@ -570,7 +570,7 @@ export default function AdminDashboard() {
                       <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                         <td style={{ padding: '14px 12px', fontWeight: 700, color: '#fff' }}>{t.username}</td>
                         <td style={{ padding: '14px 12px', color: '#94a3b8' }}>{t.email}</td>
-                        <td style={{ padding: '14px 12px', color: '#64748b', fontSize: '13px' }}>{t.created_at || '-'}</td>
+                        <td style={{ padding: '14px 12px', color: '#64748b', fontSize: '13px' }}>{t.created_at || ''}</td>
                         <td style={{ padding: '14px 12px' }}>
                           <div style={{ display: 'flex', gap: '8px' }}>
                             <button onClick={() => { setEditingTeacher(editingTeacher === t.username ? null : t.username); setEditTeacherForm({ new_email: '', new_password: '' }); }}
