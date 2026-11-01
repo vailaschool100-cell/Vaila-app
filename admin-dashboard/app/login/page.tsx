@@ -2,7 +2,9 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Lock, Mail, ShieldCheck } from 'lucide-react';
+import { Lock, Mail } from 'lucide-react';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 export default function AdminLogin() {
   const router = useRouter();
@@ -11,16 +13,36 @@ export default function AdminLogin() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     if (email === 'Admin@vaila.com' && password === 'Admin123') {
       localStorage.setItem('vaila_admin_token', 'admin_jwt_token_2026');
+      localStorage.setItem('vaila_admin_role', 'admin');
+      localStorage.setItem('vaila_admin_username', 'Admin');
       router.push('/');
-    } else {
-      setError('Invalid admin email or password. Please use Admin@vaila.com / Admin123');
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('email_or_username', email);
+      formData.append('password', password);
+      const res = await fetch(`${API_URL}/api/admin/teacher-login`, { method: 'POST', body: formData });
+      if (res.ok) {
+        const data = await res.json();
+        localStorage.setItem('vaila_admin_token', data.token);
+        localStorage.setItem('vaila_admin_role', 'teacher');
+        localStorage.setItem('vaila_admin_username', data.username);
+        router.push('/');
+      } else {
+        setError('Invalid credentials. Use Admin@vaila.com/Admin123 or your teacher account.');
+        setLoading(false);
+      }
+    } catch {
+      setError('Could not connect to server. Please try again.');
       setLoading(false);
     }
   };
@@ -61,7 +83,7 @@ export default function AdminLogin() {
             V
           </div>
           <h1 style={{ color: '#f8fafc', fontSize: '24px', fontWeight: '800', margin: 0 }}>
-            Admin Portal Login
+            Admin / Teacher Login
           </h1>
           <p style={{ color: '#94a3b8', fontSize: '13px', marginTop: '6px' }}>
             Vaila Phonics Teaching System Management
@@ -85,11 +107,11 @@ export default function AdminLogin() {
         <form onSubmit={handleLogin}>
           <div style={{ marginBottom: '20px' }}>
             <label style={{ display: 'block', color: '#cbd5e1', fontSize: '13px', fontWeight: '600', marginBottom: '8px' }}>
-              Admin Email
+              Email / Username
             </label>
             <div style={{ position: 'relative' }}>
               <input
-                type="email"
+                type="text"
                 required
                 placeholder="Admin@vaila.com"
                 value={email}

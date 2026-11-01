@@ -890,6 +890,161 @@ def deactivate_user(background_tasks: BackgroundTasks, username: Optional[str] =
     return {"success": True, "message": "User deactivated successfully"}
 
 
+# ─── Teacher Management Routes ────────────────────────────────────────────────
+
+@app.post("/api/admin/teacher-login")
+def teacher_login(email_or_username: str = Form(...), password: str = Form(...)):
+    pwd_hash = hash_password(password)
+    user_dict = None
+    if db is not None:
+        user = db.users.find_one({
+            "$or": [{"email": email_or_username}, {"username": email_or_username}],
+            "password_hash": pwd_hash,
+            "role": "teacher"
+        })
+        if user:
+            user["id"] = str(user["_id"])
+            user_dict = user
+    else:
+        conn = sqlite3.connect("vaila.db")
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users WHERE (email = ? OR username = ?) AND password_hash = ? AND role = 'teacher'",
+                       (email_or_username, email_or_username, pwd_hash))
+        row = cursor.fetchone()
+        if row:
+            user_dict = dict(row)
+        conn.close()
+    if not user_dict:
+        raise HTTPException(status_code=401, detail="Invalid credentials or not a teacher account")
+    return {"success": True, "token": f"teacher_token_{user_dict.get('username')}", "role": "teacher", "username": user_dict.get("username")}
+
+
+@app.post("/api/admin/add-teacher")
+def add_teacher(username: str = Form(...), email: str = Form(...), password: str = Form(...)):
+    pwd_hash = hash_password(password)
+    created_at = time.strftime("%Y-%m-%d %H:%M:%S")
+    current_month = time.strftime("%Y-%m")
+    if db is not None:
+        if db.users.find_one({"$or": [{"email": email}, {"username": username}]}):
+            raise HTTPException(status_code=400, detail="Username or email already exists")
+        db.users.insert_one({
+            "username": username, "email": email, "password_hash": pwd_hash,
+            "role": "teacher", "avatar_url": "", "registration_screenshot": "",
+            "is_approved": 1, "is_active": 1,
+            "registration_month": current_month, "last_payment_month": current_month, "created_at": created_at
+        })
+    else:
+        conn = sqlite3.connect("vaila.db")
+        cursor = conn.cursor()
+        if cursor.execute("SELECT id FROM users WHERE email = ? OR username = ?", (email, username)).fetchone():
+            conn.close()
+            raise HTTPException(status_code=400, detail="Username or email already exists")
+        cursor.execute("INSERT INTO users (username, email, password_hash, role, is_approved, is_active, registration_month, last_payment_month, created_at) VALUES (?, ?, ?, 'teacher', 1, 1, ?, ?, ?)",
+                       (username, email, pwd_hash, current_month, current_month, created_at))
+        conn.commit()
+        conn.close()
+    return {"success": True, "message": f"Teacher '{username}' added successfully"}
+
+
+@app.get("/api/admin/teachers")
+def get_teachers():
+    if db is not None:
+        teachers = list(db.users.find({"role": "teacher"}).sort("_id", -1))
+        for t in teachers:
+            t["id"] = str(t["_id"])
+            t.pop("_id", None)
+            t.pop("password_hash", None)
+    else:
+        conn = sqlite3.connect("vaila.db")
+        conn.row_factory = sqlite3.Row
+        teachers = [dict(r) for r in conn.execute("SELECT id, username, email, created_at FROM users WHERE role = 'teacher' ORDER BY id DESC").fetchall()]
+        conn.close()
+    return {"teachers": teachers}
+
+
+@app.post("/api/admin/delete-teacher")
+def delete_teacher(username: str = Form(...)):
+    if db is not None:
+        result = db.users.delete_one({"username": username, "role": "teacher"})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Teacher not found")
+    else:
+        conn = sqlite3.connect("vaila.db")
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM users WHERE username = ? AND role = 'teacher'", (username,))
+        if cursor.rowcount == 0:
+            conn.close()
+            raise HTTPException(status_code=404, detail="Teacher not found")
+        conn.commit()
+        conn.close()
+    return {"success": True}
+
+
+@app.post("/api/admin/edit-teacher")
+def edit_teacher(username: str = Form(...), new_email: str = Form(None), new_password: str = Form(None)):
+    updates: dict = {}
+    if new_email:
+        updates["email"] = new_email
+    if new_password:
+        updates["password_hash"] = hash_password(new_password)
+    if not updates:
+        raise HTTPException(status_code=400, detail="No changes provided")
+    if db is not None:
+        db.users.update_one({"username": username, "role": "teacher"}, {"$set": updates})
+    else:
+        conn = sqlite3.connect("vaila.db")
+        cursor = conn.cursor()
+        if "email" in updates and "password_hash" in updates:
+            cursor.execute("UPDATE users SET email = ?, password_hash = ? WHERE username = ? AND role = 'teacher'",
+                           (updates["email"], updates["password_hash"], username))
+        elif "email" in updates:
+            cursor.execute("UPDATE users SET email = ? WHERE username = ? AND role = 'teacher'", (updates["email"], username))
+        else:
+            cursor.execute("UPDATE users SET password_hash = ? WHERE username = ? AND role = 'teacher'", (updates["password_hash"], username))
+        conn.commit()
+        conn.close()
+    return {"success": True}
+
+
+@app.get("/api/admin/students")
+def get_students_list():
+    if db is not None:
+        students = list(db.users.find({"role": "student"}).sort("_id", -1))
+        result = [{"username": s.get("username"), "email": s.get("email"), "created_at": s.get("created_at", ""), "is_active": s.get("is_active", 0)} for s in students]
+    else:
+        conn = sqlite3.connect("vaila.db")
+        conn.row_factory = sqlite3.Row
+        result = [{"username": r["username"], "email": r["email"], "created_at": r["created_at"] or "", "is_active": r["is_active"]}
+                  for r in conn.execute("SELECT username, email, created_at, is_active FROM users WHERE role = 'student' ORDER BY id DESC").fetchall()]
+        conn.close()
+    return {"students": result}
+
+
+@app.get("/api/admin/student-evaluations/{student_username}")
+def get_student_evaluations(student_username: str):
+    excluded = _NUMBER_ALPHABET_VALUES + _URDU_ALPHABET_VALUES
+    urdu_upper = [v.upper() for v in _URDU_ALPHABET_VALUES]
+    if db is not None:
+        phonics_filter = {"student": student_username, "alphabet": {"$nin": [v.upper() for v in excluded]}}
+        phonics_logs = list(db.session_logs.find(phonics_filter).sort("_id", -1).limit(200))
+        for r in phonics_logs: r.pop("_id", None)
+        num_logs = list(db.session_logs.find({"student": student_username, "alphabet": {"$in": _NUMBER_ALPHABET_VALUES}}).sort("_id", -1).limit(200))
+        for r in num_logs: r.pop("_id", None)
+        urdu_logs = list(db.session_logs.find({"student": student_username, "alphabet": {"$in": urdu_upper}}).sort("_id", -1).limit(200))
+        for r in urdu_logs: r.pop("_id", None)
+    else:
+        conn = sqlite3.connect("vaila.db")
+        conn.row_factory = sqlite3.Row
+        exc_upper = [v.upper() for v in excluded]
+        ph = lambda lst: ",".join(["?"] * len(lst))
+        phonics_logs = [dict(r) for r in conn.execute(f"SELECT * FROM session_logs WHERE student = ? AND alphabet NOT IN ({ph(exc_upper)}) ORDER BY id DESC LIMIT 200", [student_username] + exc_upper).fetchall()]
+        num_logs = [dict(r) for r in conn.execute(f"SELECT * FROM session_logs WHERE student = ? AND alphabet IN ({ph(_NUMBER_ALPHABET_VALUES)}) ORDER BY id DESC LIMIT 200", [student_username] + _NUMBER_ALPHABET_VALUES).fetchall()]
+        urdu_logs = [dict(r) for r in conn.execute(f"SELECT * FROM session_logs WHERE student = ? AND alphabet IN ({ph(urdu_upper)}) ORDER BY id DESC LIMIT 200", [student_username] + urdu_upper).fetchall()]
+        conn.close()
+    return {"student": student_username, "phonics": phonics_logs, "numbers": num_logs, "urdu": urdu_logs}
+
+
 # ─── Speech Evaluation Route ───────────────────────────────────────────────────
 @app.get("/")
 def root():
