@@ -40,7 +40,7 @@ export default function HomePage() {
             >
               <Sparkles size={14} /> AI-powered speech feedback
             </span>
-            <h1 style={{ fontSize: 44, fontWeight: 900, color: 'var(--navy)', lineHeight: 1.15, margin: '20px 0 0' }}>
+            <h1 className="hero-h1" style={{ fontSize: 44, fontWeight: 900, color: 'var(--navy)', lineHeight: 1.15, margin: '20px 0 0' }}>
               Speech &amp; phonics practice, made for every child.
             </h1>
             <p style={{ fontSize: 17, color: 'var(--text-muted)', marginTop: 18, lineHeight: 1.7, maxWidth: 480 }}>

@@ -570,6 +570,7 @@ export default function AdminDashboard() {
             {teachers.length === 0 ? (
               <div style={{ color: '#64748b', textAlign: 'center', padding: '32px' }}>No teachers added yet.</div>
             ) : (
+              <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', color: '#cbd5e1', fontSize: '14px' }}>
                 <thead><tr style={{ borderBottom: '1px solid #334155', textAlign: 'left' }}>
                   <th style={{ padding: '12px' }}>Username</th><th style={{ padding: '12px' }}>Email</th>
@@ -627,6 +628,7 @@ export default function AdminDashboard() {
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         </div>

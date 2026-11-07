@@ -4,6 +4,7 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'Vaila Teaching — Speech & Phonics Practice',
   description: 'Pronunciation practice for children — English alphabets, numbers, and Urdu, with instant AI feedback.',
+  viewport: 'width=device-width, initial-scale=1',
 };
 
 export default function RootLayout({

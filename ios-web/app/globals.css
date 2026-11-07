@@ -207,6 +207,24 @@ input {
   animation: pulse 0.5s ease-in-out infinite alternate;
 }
 
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 760px) {
+  .hero-h1 {
+    font-size: 28px !important;
+  }
+
+  .auth-right-panel {
+    padding: 32px 20px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-h1 {
+    font-size: 24px !important;
+  }
+}
+
 .card {
   background: var(--cream-card);
   border-radius: 20px;
