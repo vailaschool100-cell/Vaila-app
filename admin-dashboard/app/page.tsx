@@ -7,6 +7,7 @@ import {
   Eye, Check, X, LogOut, ChevronLeft, ChevronRight, Search, Trash2, Edit2, UserPlus
 } from 'lucide-react';
 
+
 const PAGE_SIZE = 10;
 const SIDEBAR_PAGE_SIZE = 15;
 
@@ -238,6 +239,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<UserItem[]>([]);
   const [payments, setPayments] = useState<PaymentRequest[]>([]);
   const [loading, setLoading] = useState(false);
+  const [slowLoad, setSlowLoad] = useState(false);
   const [activeTab, setActiveTab] = useState<'users' | 'student-evals' | 'teachers'>('users');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
@@ -275,11 +277,12 @@ export default function AdminDashboard() {
 
   const fetchAdminData = useCallback(async () => {
     setLoading(true);
+    const slowTimer = setTimeout(() => setSlowLoad(true), 4000);
     try {
       const userRes = await fetch(`${API_URL}/api/admin/users`);
       if (userRes.ok) { const d = await userRes.json(); setUsers(d.users || []); setPayments(d.payments || []); }
     } catch (e) { console.log('Error fetching admin data:', e); }
-    finally { setLoading(false); }
+    finally { clearTimeout(slowTimer); setLoading(false); setSlowLoad(false); }
   }, [API_URL]);
 
   const fetchStudents = useCallback(async () => {
@@ -450,6 +453,14 @@ export default function AdminDashboard() {
           </button>
         </div>
       </header>
+
+      {/* Slow-load hint */}
+      {slowLoad && (
+        <div style={{ backgroundColor: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: '12px', padding: '10px 16px', marginBottom: '8px', color: '#fbbf24', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <RefreshCw size={14} className="animate-spin" />
+          Server is waking up — data will appear shortly…
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="tab-row">

@@ -727,7 +727,7 @@ def get_all_users():
     days_left = max(0, 30 - now.day)
 
     if db is not None:
-        users = list(db.users.find({"role": {"$ne": "admin"}}).sort("_id", -1))
+        users = list(db.users.find({"role": "student"}).sort("_id", -1))
         for u in users:
             u["id"] = str(u["_id"])
             u.pop("_id", None)
@@ -739,7 +739,7 @@ def get_all_users():
         conn = sqlite3.connect("vaila.db")
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        users = [dict(r) for r in cursor.execute("SELECT * FROM users WHERE role != 'admin' ORDER BY id DESC").fetchall()]
+        users = [dict(r) for r in cursor.execute("SELECT * FROM users WHERE role = 'student' ORDER BY id DESC").fetchall()]
         payments = [dict(r) for r in cursor.execute("SELECT * FROM payment_requests ORDER BY id DESC").fetchall()]
         conn.close()
 
